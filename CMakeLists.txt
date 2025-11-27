@@ -24,6 +24,28 @@ endif()
 # First check if required libraries are installed locally
 find_package(OpenMP REQUIRED)
 
+# Optional CUDA support for GPU acceleration
+option(VMECPP_ENABLE_CUDA "Enable CUDA backend for GPU acceleration" OFF)
+if(VMECPP_ENABLE_CUDA)
+  include(CheckLanguage)
+  check_language(CUDA)
+  if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+    find_package(CUDAToolkit REQUIRED)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    # Use the same C++ standard for CUDA as for C++
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+    add_compile_definitions(VMECPP_HAS_CUDA)
+    message(STATUS "CUDA support enabled")
+    message(STATUS "CUDA compiler: ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "CUDA version: ${CMAKE_CUDA_COMPILER_VERSION}")
+  else()
+    message(WARNING "CUDA requested but no CUDA compiler found. Disabling CUDA support.")
+    set(VMECPP_ENABLE_CUDA OFF)
+  endif()
+endif()
+
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 include_directories(${HDF5_INCLUDE_DIRS} ${HDF5_CXX_INCLUDE_DIRS})
 
@@ -119,11 +141,47 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(vmecpp_core PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# CUDA backend library (built separately due to CUDA compilation requirements)
+if(VMECPP_ENABLE_CUDA)
+  set(vmecpp_cuda_sources
+    ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/compute_backend_cuda.cu
+    ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tile_memory_budget.cu
+    ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/cuda_memory.cu
+    ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tiled_compute_backend_cuda.cu
+  )
+  # TileScheduler is pure C++ (no CUDA), so it can be part of regular sources
+  list(APPEND vmecpp_sources
+    ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tile_scheduler.cc
+  )
+  add_library(vmecpp_cuda STATIC ${vmecpp_cuda_sources})
+  target_include_directories(vmecpp_cuda PRIVATE ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp)
+  target_link_libraries(vmecpp_cuda PRIVATE CUDA::cudart)
+  set_target_properties(vmecpp_cuda PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+  )
+  target_link_libraries(vmecpp_core PRIVATE vmecpp_cuda CUDA::cudart)
+endif()
+
 
 # Now also add the vmec_standalone executable.
 add_executable(vmec_standalone ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/vmec/vmec_standalone/vmec_standalone.cc)
 target_link_libraries(vmec_standalone vmecpp_core)
 target_link_libraries(vmecpp_core PRIVATE absl::strings)
+
+# Add the backend benchmark executable.
+add_executable(backend_benchmark ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/benchmark/backend_benchmark.cc)
+target_link_libraries(backend_benchmark vmecpp_core)
+if(VMECPP_ENABLE_CUDA)
+  target_link_libraries(backend_benchmark vmecpp_cuda CUDA::cudart)
+endif()
+
+# Add the tiled backend benchmark executable.
+add_executable(tiled_benchmark ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/benchmark/tiled_benchmark.cc)
+target_link_libraries(tiled_benchmark vmecpp_core)
+if(VMECPP_ENABLE_CUDA)
+  target_link_libraries(tiled_benchmark vmecpp_cuda CUDA::cudart)
+endif()
 
 # Now add the pybind11 module for VMEC++.
 FetchContent_MakeAvailable(pybind11)
