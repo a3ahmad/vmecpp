@@ -55,7 +55,7 @@ sudo apt-get update
 sudo apt-get install -y \
   build-essential cmake \
   libhdf5-dev libnetcdf-dev \
-  liblapack-dev libopenmp-dev
+  liblapack-dev libopenmpi-dev
 
 # For CUDA support (adjust version as needed)
 # Follow: https://developer.nvidia.com/cuda-downloads

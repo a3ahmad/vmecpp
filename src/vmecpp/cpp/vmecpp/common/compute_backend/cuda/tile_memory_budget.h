@@ -7,6 +7,7 @@
 #define VMECPP_COMMON_COMPUTE_BACKEND_CUDA_TILE_MEMORY_BUDGET_H_
 
 #include <cstddef>
+#include <string>
 
 namespace vmecpp {
 

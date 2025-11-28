@@ -165,7 +165,8 @@ class TiledComputeBackendCudaImpl {
   }
 
   void CacheBasisFunctions(const FourierBasisFastPoloidal& fb, int mpol,
-                           int ntor, int n_zeta, int n_theta_reduced) {
+                           int ntor, int nnyq2, int n_zeta,
+                           int n_theta_reduced) {
     if (basis_cached_ && cached_mpol_ == mpol && cached_ntor_ == ntor &&
         cached_n_zeta_ == n_zeta && cached_n_theta_ == n_theta_reduced) {
       return;  // Already cached
@@ -175,23 +176,35 @@ class TiledComputeBackendCudaImpl {
 
     // Copy basis arrays to device
     size_t poloidal_size = n_theta_reduced * mpol;
-    size_t toroidal_size = n_zeta * (fb.nnyq2() + 1);
+    size_t toroidal_size = n_zeta * (nnyq2 + 1);
 
-    d_cosmu_.CopyFromHost(fb.cosmuf().data(), poloidal_size * sizeof(double), stream);
-    d_sinmu_.CopyFromHost(fb.sinmuf().data(), poloidal_size * sizeof(double), stream);
-    d_cosmum_.CopyFromHost(fb.cosmumf().data(), poloidal_size * sizeof(double), stream);
-    d_sinmum_.CopyFromHost(fb.sinmumf().data(), poloidal_size * sizeof(double), stream);
+    d_cosmu_.CopyFromHost(fb.cosmu.data(), poloidal_size * sizeof(double),
+                          stream);
+    d_sinmu_.CopyFromHost(fb.sinmu.data(), poloidal_size * sizeof(double),
+                          stream);
+    d_cosmum_.CopyFromHost(fb.cosmum.data(), poloidal_size * sizeof(double),
+                           stream);
+    d_sinmum_.CopyFromHost(fb.sinmum.data(), poloidal_size * sizeof(double),
+                           stream);
 
-    d_cosnv_.CopyFromHost(fb.cosnv().data(), toroidal_size * sizeof(double), stream);
-    d_sinnv_.CopyFromHost(fb.sinnv().data(), toroidal_size * sizeof(double), stream);
-    d_cosnvn_.CopyFromHost(fb.cosnvn().data(), toroidal_size * sizeof(double), stream);
-    d_sinnvn_.CopyFromHost(fb.sinnvn().data(), toroidal_size * sizeof(double), stream);
+    d_cosnv_.CopyFromHost(fb.cosnv.data(), toroidal_size * sizeof(double),
+                          stream);
+    d_sinnv_.CopyFromHost(fb.sinnv.data(), toroidal_size * sizeof(double),
+                          stream);
+    d_cosnvn_.CopyFromHost(fb.cosnvn.data(), toroidal_size * sizeof(double),
+                           stream);
+    d_sinnvn_.CopyFromHost(fb.sinnvn.data(), toroidal_size * sizeof(double),
+                           stream);
 
     // Integration-weighted versions
-    d_cosmui_.CopyFromHost(fb.cosmuif().data(), poloidal_size * sizeof(double), stream);
-    d_sinmui_.CopyFromHost(fb.sinmuif().data(), poloidal_size * sizeof(double), stream);
-    d_cosmumi_.CopyFromHost(fb.cosmumif().data(), poloidal_size * sizeof(double), stream);
-    d_sinmumi_.CopyFromHost(fb.sinmumif().data(), poloidal_size * sizeof(double), stream);
+    d_cosmui_.CopyFromHost(fb.cosmui.data(), poloidal_size * sizeof(double),
+                           stream);
+    d_sinmui_.CopyFromHost(fb.sinmui.data(), poloidal_size * sizeof(double),
+                           stream);
+    d_cosmumi_.CopyFromHost(fb.cosmumi.data(), poloidal_size * sizeof(double),
+                            stream);
+    d_sinmumi_.CopyFromHost(fb.sinmumi.data(), poloidal_size * sizeof(double),
+                            stream);
 
     CUDA_CHECK(cudaStreamSynchronize(stream));
 
@@ -223,7 +236,7 @@ void TiledComputeBackendCuda::FourierToReal(
   const int ntor = s.ntor;
 
   impl_->UpdateProblemParams(ns, mpol, ntor, s.nZeta, s.nThetaEff);
-  impl_->CacheBasisFunctions(fb, mpol, ntor, s.nZeta, s.nThetaReduced);
+  impl_->CacheBasisFunctions(fb, mpol, ntor, s.nnyq2, s.nZeta, s.nThetaReduced);
 
   if (!impl_->current_params_.tiling_enabled) {
     // Direct execution without tiling - use CPU backend for now
@@ -281,9 +294,10 @@ void TiledComputeBackendCuda::FourierToReal(
 
 void TiledComputeBackendCuda::ForcesToFourier(
     const RealSpaceForces& forces, const std::vector<double>& xmpq,
-    const RadialPartitioning& rp, const ForceCoefficients& fc, const Sizes& s,
-    const FourierBasisFastPoloidal& fb, const VacuumState vacuum_state,
-    ForceFourierCoefficients& m_forces) {
+    const RadialPartitioning& rp, const FlowControl& fc, const Sizes& s,
+    const FourierBasisFastPoloidal& fb,
+    VacuumPressureState vacuum_pressure_state,
+    FourierForces& m_physical_forces) {
   const int ns = rp.nsMaxF1 - rp.nsMinF1;
   const int mpol = s.mpol;
   const int ntor = s.ntor;
@@ -292,7 +306,8 @@ void TiledComputeBackendCuda::ForcesToFourier(
 
   if (!impl_->current_params_.tiling_enabled) {
     impl_->cpu_backend_.ForcesToFourier(forces, xmpq, rp, fc, s, fb,
-                                         vacuum_state, m_forces);
+                                        vacuum_pressure_state,
+                                        m_physical_forces);
     return;
   }
 
@@ -300,12 +315,12 @@ void TiledComputeBackendCuda::ForcesToFourier(
   const auto& tiles = impl_->dft_scheduler_->GetTiles();
 
   // Zero output arrays before accumulation
-  std::fill(m_forces.frcc.begin(), m_forces.frcc.end(), 0.0);
-  std::fill(m_forces.frss.begin(), m_forces.frss.end(), 0.0);
-  std::fill(m_forces.fzsc.begin(), m_forces.fzsc.end(), 0.0);
-  std::fill(m_forces.fzcs.begin(), m_forces.fzcs.end(), 0.0);
-  std::fill(m_forces.flsc.begin(), m_forces.flsc.end(), 0.0);
-  std::fill(m_forces.flcs.begin(), m_forces.flcs.end(), 0.0);
+  std::fill(m_physical_forces.frcc.begin(), m_physical_forces.frcc.end(), 0.0);
+  std::fill(m_physical_forces.frss.begin(), m_physical_forces.frss.end(), 0.0);
+  std::fill(m_physical_forces.fzsc.begin(), m_physical_forces.fzsc.end(), 0.0);
+  std::fill(m_physical_forces.fzcs.begin(), m_physical_forces.fzcs.end(), 0.0);
+  std::fill(m_physical_forces.flsc.begin(), m_physical_forces.flsc.end(), 0.0);
+  std::fill(m_physical_forces.flcs.begin(), m_physical_forces.flcs.end(), 0.0);
 
   for (const auto& tile : tiles) {
     RadialPartitioning tile_rp = rp;
@@ -314,7 +329,8 @@ void TiledComputeBackendCuda::ForcesToFourier(
 
     // TODO: Implement GPU kernel for tile
     impl_->cpu_backend_.ForcesToFourier(forces, xmpq, tile_rp, fc, s, fb,
-                                         vacuum_state, m_forces);
+                                        vacuum_pressure_state,
+                                        m_physical_forces);
   }
 
   impl_->stream_manager_.SynchronizeAll();

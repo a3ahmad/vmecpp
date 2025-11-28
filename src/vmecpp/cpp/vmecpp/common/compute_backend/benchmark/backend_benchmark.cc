@@ -3,23 +3,22 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Benchmark tool for comparing compute backend performance.
+// Benchmark tool for comparing compute backend performance (CPU vs CUDA).
 //
 // Usage:
 //   backend_benchmark [options]
 //
 // Options:
-//   --ns=<int>        Number of radial surfaces (default: 50)
-//   --mpol=<int>      Number of poloidal modes (default: 12)
-//   --ntor=<int>      Number of toroidal modes (default: 12)
+//   --ns=<int>        Number of radial surfaces (default: 100)
 //   --nzeta=<int>     Number of toroidal grid points (default: 36)
 //   --ntheta=<int>    Number of poloidal grid points (default: 36)
 //   --iterations=<int> Number of benchmark iterations (default: 100)
 //   --warmup=<int>    Number of warmup iterations (default: 10)
 //
-// The benchmark measures the time for:
-//   1. FourierToReal (inverse DFT)
-//   2. ForcesToFourier (forward DFT)
+// The benchmark measures the time for backend physics operations:
+//   1. ComputeJacobian
+//   2. ComputeMetricElements
+//   3. ComputeMHDForces
 
 #include <chrono>
 #include <cmath>
@@ -35,34 +34,34 @@
 #include "vmecpp/common/compute_backend/compute_backend.h"
 #include "vmecpp/common/compute_backend/compute_backend_cpu.h"
 #include "vmecpp/common/compute_backend/compute_backend_factory.h"
-#include "vmecpp/common/flow_control/flow_control.h"
-#include "vmecpp/common/fourier_basis_fast_poloidal/fourier_basis_fast_poloidal.h"
 #include "vmecpp/common/sizes/sizes.h"
-#include "vmecpp/vmec/fourier_forces/fourier_forces.h"
-#include "vmecpp/vmec/fourier_geometry/fourier_geometry.h"
-#include "vmecpp/vmec/ideal_mhd_model/dft_data.h"
 #include "vmecpp/vmec/radial_partitioning/radial_partitioning.h"
-#include "vmecpp/vmec/radial_profiles/radial_profiles.h"
 
 namespace {
 
 struct BenchmarkConfig {
-  int ns = 50;
-  int mpol = 12;
-  int ntor = 12;
+  int ns = 100;
   int nzeta = 36;
   int ntheta = 36;
   int iterations = 100;
   int warmup = 10;
-  int nfp = 5;  // Number of field periods (typical stellarator)
+  int nfp = 5;
+  int mpol = 12;
+  int ntor = 12;
+};
+
+struct TimingResult {
+  double mean_us;
+  double std_us;
+  double min_us;
+  double max_us;
 };
 
 struct BenchmarkResult {
   std::string backend_name;
-  double fourier_to_real_mean_us;
-  double fourier_to_real_std_us;
-  double forces_to_fourier_mean_us;
-  double forces_to_fourier_std_us;
+  TimingResult jacobian;
+  TimingResult metric;
+  TimingResult mhd_forces;
   double total_mean_us;
   bool available;
 };
@@ -75,10 +74,6 @@ BenchmarkConfig ParseArgs(int argc, char* argv[]) {
     std::string arg = argv[i];
     if (arg.rfind("--ns=", 0) == 0) {
       config.ns = std::stoi(arg.substr(5));
-    } else if (arg.rfind("--mpol=", 0) == 0) {
-      config.mpol = std::stoi(arg.substr(7));
-    } else if (arg.rfind("--ntor=", 0) == 0) {
-      config.ntor = std::stoi(arg.substr(7));
     } else if (arg.rfind("--nzeta=", 0) == 0) {
       config.nzeta = std::stoi(arg.substr(8));
     } else if (arg.rfind("--ntheta=", 0) == 0) {
@@ -92,19 +87,11 @@ BenchmarkConfig ParseArgs(int argc, char* argv[]) {
                 << "\n"
                 << "Options:\n"
                 << "  --ns=<int>         Number of radial surfaces (default: "
-                   "50)\n"
-                << "  --mpol=<int>       Number of poloidal modes (default: "
-                   "12)\n"
-                << "  --ntor=<int>       Number of toroidal modes (default: "
-                   "12)\n"
-                << "  --nzeta=<int>      Number of toroidal grid points "
-                   "(default: 36)\n"
-                << "  --ntheta=<int>     Number of poloidal grid points "
-                   "(default: 36)\n"
-                << "  --iterations=<int> Number of benchmark iterations "
-                   "(default: 100)\n"
-                << "  --warmup=<int>     Number of warmup iterations (default: "
-                   "10)\n";
+                   "100)\n"
+                << "  --nzeta=<int>      Toroidal grid points (default: 36)\n"
+                << "  --ntheta=<int>     Poloidal grid points (default: 36)\n"
+                << "  --iterations=<int> Benchmark iterations (default: 100)\n"
+                << "  --warmup=<int>     Warmup iterations (default: 10)\n";
       std::exit(0);
     }
   }
@@ -112,198 +99,275 @@ BenchmarkConfig ParseArgs(int argc, char* argv[]) {
   return config;
 }
 
-// Calculate mean and standard deviation.
-std::pair<double, double> CalcStats(const std::vector<double>& times) {
-  if (times.empty()) return {0.0, 0.0};
+// Calculate timing statistics.
+TimingResult CalcStats(const std::vector<double>& times) {
+  TimingResult result{};
+  if (times.empty()) return result;
 
   double sum = std::accumulate(times.begin(), times.end(), 0.0);
-  double mean = sum / static_cast<double>(times.size());
+  result.mean_us = sum / static_cast<double>(times.size());
 
   double sq_sum = 0.0;
   for (double t : times) {
-    sq_sum += (t - mean) * (t - mean);
+    sq_sum += (t - result.mean_us) * (t - result.mean_us);
   }
-  double std_dev = std::sqrt(sq_sum / static_cast<double>(times.size()));
+  result.std_us = std::sqrt(sq_sum / static_cast<double>(times.size()));
 
-  return {mean, std_dev};
+  result.min_us = *std::min_element(times.begin(), times.end());
+  result.max_us = *std::max_element(times.begin(), times.end());
+
+  return result;
 }
 
-// Initialize test data with random values.
-void InitializeTestData(vmecpp::FourierGeometry& geometry,
-                        vmecpp::FourierForces& forces,
-                        std::vector<double>& xmpq, const vmecpp::Sizes& s,
-                        const vmecpp::RadialPartitioning& rp) {
-  std::mt19937 rng(42);  // Fixed seed for reproducibility
-  std::uniform_real_distribution<double> dist(-1.0, 1.0);
+// Data container for benchmark inputs/outputs.
+struct BenchmarkData {
+  // Grid dimensions
+  int ns;
+  int grid_size;  // (ns-1) * nZeta * nThetaEff for half-grid operations
 
-  // Initialize Fourier coefficients.
-  int coeff_size = (rp.nsMaxF1 - rp.nsMinF1) * s.mpol * (s.ntor + 1);
-  geometry.rmncc.resize(coeff_size);
-  geometry.rmnss.resize(coeff_size);
-  geometry.zmnsc.resize(coeff_size);
-  geometry.zmncs.resize(coeff_size);
-  geometry.lmnsc.resize(coeff_size);
-  geometry.lmncs.resize(coeff_size);
+  // Geometry arrays (full-grid, even/odd)
+  std::vector<double> r1_e, r1_o;
+  std::vector<double> z1_e, z1_o;
+  std::vector<double> ru_e, ru_o;
+  std::vector<double> zu_e, zu_o;
+  std::vector<double> rv_e, rv_o;
+  std::vector<double> zv_e, zv_o;
 
-  for (int i = 0; i < coeff_size; ++i) {
-    geometry.rmncc[i] = dist(rng) * 0.1;
-    geometry.rmnss[i] = dist(rng) * 0.1;
-    geometry.zmnsc[i] = dist(rng) * 0.1;
-    geometry.zmncs[i] = dist(rng) * 0.1;
-    geometry.lmnsc[i] = dist(rng) * 0.01;
-    geometry.lmncs[i] = dist(rng) * 0.01;
+  // Jacobian outputs (half-grid)
+  std::vector<double> tau;
+  std::vector<double> r12, ru12, zu12;
+  std::vector<double> rs, zs;
+
+  // Metric outputs (half-grid)
+  std::vector<double> gsqrt;
+  std::vector<double> guu, guv, gvv;
+
+  // Radial profiles
+  std::vector<double> sqrtSF, sqrtSH;
+
+  // Magnetic field (for MHD forces)
+  std::vector<double> bsupu, bsupv;
+  std::vector<double> totalPressure;
+
+  // MHD force outputs
+  std::vector<double> armn_e, armn_o;
+  std::vector<double> azmn_e, azmn_o;
+  std::vector<double> brmn_e, brmn_o;
+  std::vector<double> bzmn_e, bzmn_o;
+  std::vector<double> crmn_e, crmn_o;
+  std::vector<double> czmn_e, czmn_o;
+
+  void Initialize(const BenchmarkConfig& config,
+                  const vmecpp::RadialPartitioning& rp,
+                  const vmecpp::Sizes& s) {
+    ns = config.ns;
+    int full_grid_size = (rp.nsMaxF1 - rp.nsMinF1) * s.nZeta * s.nThetaEff;
+    int half_grid_size =
+        (rp.nsMaxFIncludingLcfs - rp.nsMinF) * s.nZeta * s.nThetaEff;
+    grid_size = half_grid_size;
+
+    // Allocate geometry arrays
+    r1_e.resize(full_grid_size);
+    r1_o.resize(full_grid_size);
+    z1_e.resize(full_grid_size);
+    z1_o.resize(full_grid_size);
+    ru_e.resize(full_grid_size);
+    ru_o.resize(full_grid_size);
+    zu_e.resize(full_grid_size);
+    zu_o.resize(full_grid_size);
+    rv_e.resize(full_grid_size);
+    rv_o.resize(full_grid_size);
+    zv_e.resize(full_grid_size);
+    zv_o.resize(full_grid_size);
+
+    // Allocate Jacobian outputs
+    tau.resize(half_grid_size);
+    r12.resize(half_grid_size);
+    ru12.resize(half_grid_size);
+    zu12.resize(half_grid_size);
+    rs.resize(half_grid_size);
+    zs.resize(half_grid_size);
+
+    // Allocate metric outputs
+    gsqrt.resize(half_grid_size);
+    guu.resize(half_grid_size);
+    guv.resize(half_grid_size);
+    gvv.resize(half_grid_size);
+
+    // Allocate radial profiles
+    sqrtSF.resize(config.ns);
+    sqrtSH.resize(config.ns);
+
+    // Allocate magnetic field arrays
+    bsupu.resize(half_grid_size);
+    bsupv.resize(half_grid_size);
+    totalPressure.resize(half_grid_size);
+
+    // Allocate MHD force outputs
+    armn_e.resize(half_grid_size);
+    armn_o.resize(half_grid_size);
+    azmn_e.resize(half_grid_size);
+    azmn_o.resize(half_grid_size);
+    brmn_e.resize(half_grid_size);
+    brmn_o.resize(half_grid_size);
+    bzmn_e.resize(half_grid_size);
+    bzmn_o.resize(half_grid_size);
+    crmn_e.resize(half_grid_size);
+    crmn_o.resize(half_grid_size);
+    czmn_e.resize(half_grid_size);
+    czmn_o.resize(half_grid_size);
+
+    // Initialize with realistic values
+    std::mt19937 rng(42);
+    std::uniform_real_distribution<double> dist(-0.1, 0.1);
+
+    double R0 = 5.5;  // Major radius
+    double a = 0.5;   // Minor radius
+
+    for (int j = 0; j < config.ns; ++j) {
+      double s_val =
+          static_cast<double>(j) / static_cast<double>(config.ns - 1);
+      sqrtSF[j] = std::sqrt(s_val);
+      sqrtSH[j] = std::sqrt(s_val + 0.5 / static_cast<double>(config.ns - 1));
+    }
+
+    // Fill geometry with tokamak-like shape
+    for (size_t i = 0; i < r1_e.size(); ++i) {
+      r1_e[i] = R0 + a * dist(rng);
+      r1_o[i] = dist(rng) * 0.01;
+      z1_e[i] = a * dist(rng);
+      z1_o[i] = dist(rng) * 0.01;
+      ru_e[i] = dist(rng) * 0.1;
+      ru_o[i] = dist(rng) * 0.01;
+      zu_e[i] = dist(rng) * 0.1;
+      zu_o[i] = dist(rng) * 0.01;
+      rv_e[i] = dist(rng) * 0.01;
+      rv_o[i] = dist(rng) * 0.001;
+      zv_e[i] = dist(rng) * 0.01;
+      zv_o[i] = dist(rng) * 0.001;
+    }
+
+    // Initialize magnetic field
+    for (size_t i = 0; i < bsupu.size(); ++i) {
+      bsupu[i] = 0.3 + dist(rng) * 0.01;
+      bsupv[i] = 1.0 + dist(rng) * 0.01;
+      totalPressure[i] = 1e4 * (1.0 - static_cast<double>(i) /
+                                          static_cast<double>(bsupu.size()));
+    }
   }
-
-  // Set major radius baseline.
-  for (int j = 0; j < rp.nsMaxF1 - rp.nsMinF1; ++j) {
-    geometry.rmncc[j * s.mpol * (s.ntor + 1)] = 5.5;  // Major radius
-  }
-
-  // Initialize force output arrays.
-  forces.frcc.resize(coeff_size);
-  forces.frss.resize(coeff_size);
-  forces.fzsc.resize(coeff_size);
-  forces.fzcs.resize(coeff_size);
-  forces.flsc.resize(coeff_size);
-  forces.flcs.resize(coeff_size);
-
-  // Initialize xmpq.
-  xmpq.resize(s.mpol);
-  for (int m = 0; m < s.mpol; ++m) {
-    xmpq[m] = m * (m - 1);
-  }
-}
+};
 
 // Run benchmark for a single backend.
 BenchmarkResult RunBenchmark(vmecpp::ComputeBackend* backend,
                              const BenchmarkConfig& config,
                              const vmecpp::Sizes& s,
-                             const vmecpp::FourierBasisFastPoloidal& fb,
-                             const vmecpp::RadialPartitioning& rp,
-                             const vmecpp::RadialProfiles& profiles,
-                             const vmecpp::FlowControl& fc) {
+                             vmecpp::RadialPartitioning& rp,
+                             BenchmarkData& data) {
   BenchmarkResult result;
   result.backend_name = backend->GetName();
   result.available = backend->IsAvailable();
 
   if (!result.available) {
-    result.fourier_to_real_mean_us = 0;
-    result.fourier_to_real_std_us = 0;
-    result.forces_to_fourier_mean_us = 0;
-    result.forces_to_fourier_std_us = 0;
+    result.jacobian = {0, 0, 0, 0};
+    result.metric = {0, 0, 0, 0};
+    result.mhd_forces = {0, 0, 0, 0};
     result.total_mean_us = 0;
     return result;
   }
 
-  // Initialize test data.
-  vmecpp::FourierGeometry geometry;
-  vmecpp::FourierForces forces;
-  std::vector<double> xmpq;
-  InitializeTestData(geometry, forces, xmpq, s, rp);
+  double deltaS = 1.0 / static_cast<double>(config.ns - 1);
 
-  // Allocate real-space geometry output.
-  int grid_size = (rp.nsMaxF1 - rp.nsMinF1) * s.nZeta * s.nThetaEff;
-  int con_size = (rp.nsMaxFIncludingLcfs - rp.nsMinF) * s.nZeta * s.nThetaEff;
+  // Create input/output structs for Jacobian
+  vmecpp::JacobianInput jac_input{data.r1_e, data.r1_o, data.z1_e, data.z1_o,
+                                  data.ru_e, data.ru_o, data.zu_e, data.zu_o,
+                                  data.sqrtSH, deltaS};
 
-  std::vector<double> r1_e(grid_size), r1_o(grid_size);
-  std::vector<double> ru_e(grid_size), ru_o(grid_size);
-  std::vector<double> rv_e(grid_size), rv_o(grid_size);
-  std::vector<double> z1_e(grid_size), z1_o(grid_size);
-  std::vector<double> zu_e(grid_size), zu_o(grid_size);
-  std::vector<double> zv_e(grid_size), zv_o(grid_size);
-  std::vector<double> lu_e(grid_size), lu_o(grid_size);
-  std::vector<double> lv_e(grid_size), lv_o(grid_size);
-  std::vector<double> r_con(con_size), z_con(con_size);
+  vmecpp::JacobianOutput jac_output{data.tau,  data.r12,  data.ru12,
+                                    data.zu12, data.rs, data.zs};
 
-  vmecpp::RealSpaceGeometry real_geom{r1_e, r1_o, ru_e, ru_o, rv_e, rv_o,
-                                      z1_e, z1_o, zu_e, zu_o, zv_e, zv_o,
-                                      lu_e, lu_o, lv_e, lv_o, r_con, z_con};
+  // Create input/output structs for Metric
+  vmecpp::MetricInput metric_input{
+      data.r1_e, data.r1_o, data.z1_e, data.z1_o,  data.ru_e,
+      data.ru_o, data.zu_e, data.zu_o, data.rv_e,  data.rv_o,
+      data.zv_e, data.zv_o, data.tau,  data.r12, data.sqrtSF,
+      data.sqrtSH, /*lthreed=*/true};
 
-  // Allocate real-space forces input (dummy data for benchmark).
-  int force_grid_size = (rp.nsMaxF - rp.nsMinF) * s.nZeta * s.nThetaEff;
-  std::vector<double> armn_e(force_grid_size), armn_o(force_grid_size);
-  std::vector<double> azmn_e(force_grid_size), azmn_o(force_grid_size);
-  std::vector<double> blmn_e(force_grid_size), blmn_o(force_grid_size);
-  std::vector<double> brmn_e(force_grid_size), brmn_o(force_grid_size);
-  std::vector<double> bzmn_e(force_grid_size), bzmn_o(force_grid_size);
-  std::vector<double> clmn_e(force_grid_size), clmn_o(force_grid_size);
-  std::vector<double> crmn_e(force_grid_size), crmn_o(force_grid_size);
-  std::vector<double> czmn_e(force_grid_size), czmn_o(force_grid_size);
-  std::vector<double> frcon_e(force_grid_size), frcon_o(force_grid_size);
-  std::vector<double> fzcon_e(force_grid_size), fzcon_o(force_grid_size);
+  vmecpp::MetricOutput metric_output{data.gsqrt, data.guu, data.guv, data.gvv};
 
-  // Fill with small random values.
-  std::mt19937 rng(42);
-  std::uniform_real_distribution<double> dist(-0.01, 0.01);
-  for (int i = 0; i < force_grid_size; ++i) {
-    armn_e[i] = dist(rng);
-    armn_o[i] = dist(rng);
-    azmn_e[i] = dist(rng);
-    azmn_o[i] = dist(rng);
-    blmn_e[i] = dist(rng);
-    blmn_o[i] = dist(rng);
-    brmn_e[i] = dist(rng);
-    brmn_o[i] = dist(rng);
-    bzmn_e[i] = dist(rng);
-    bzmn_o[i] = dist(rng);
-    clmn_e[i] = dist(rng);
-    clmn_o[i] = dist(rng);
-    crmn_e[i] = dist(rng);
-    crmn_o[i] = dist(rng);
-    czmn_e[i] = dist(rng);
-    czmn_o[i] = dist(rng);
-  }
+  // Create input/output structs for MHD forces
+  vmecpp::MHDForcesInput mhd_input{
+      data.r1_e,     data.r1_o,         data.z1_e,  data.z1_o,
+      data.ru_e,     data.ru_o,         data.zu_e,  data.zu_o,
+      data.rv_e,     data.rv_o,         data.zv_e,  data.zv_o,
+      data.r12,      data.ru12,         data.zu12,  data.rs,
+      data.zs,       data.tau,          data.gsqrt, data.bsupu,
+      data.bsupv,    data.totalPressure, data.sqrtSF, data.sqrtSH,
+      deltaS, /*lfreeb=*/false, /*lthreed=*/true, config.ns};
 
-  vmecpp::RealSpaceForces real_forces{armn_e, armn_o, azmn_e, azmn_o,
-                                      blmn_e, blmn_o, brmn_e, brmn_o,
-                                      bzmn_e, bzmn_o, clmn_e, clmn_o,
-                                      crmn_e, crmn_o, czmn_e, czmn_o,
-                                      frcon_e, frcon_o, fzcon_e, fzcon_o};
+  vmecpp::MHDForcesOutput mhd_output{data.armn_e, data.armn_o, data.azmn_e,
+                                     data.azmn_o, data.brmn_e, data.brmn_o,
+                                     data.bzmn_e, data.bzmn_o, data.crmn_e,
+                                     data.crmn_o, data.czmn_e, data.czmn_o};
 
-  // Warmup iterations.
+  // Warmup for Jacobian
   for (int i = 0; i < config.warmup; ++i) {
-    backend->FourierToReal(geometry, xmpq, rp, s, profiles, fb, real_geom);
-    backend->ForcesToFourier(real_forces, xmpq, rp, fc, s, fb,
-                             vmecpp::VacuumPressureState::kOff, forces);
+    backend->ComputeJacobian(jac_input, rp, s, jac_output);
   }
   backend->Synchronize();
 
-  // Benchmark FourierToReal.
-  std::vector<double> f2r_times;
-  f2r_times.reserve(config.iterations);
+  // Benchmark Jacobian
+  std::vector<double> jac_times;
+  jac_times.reserve(config.iterations);
   for (int i = 0; i < config.iterations; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
-    backend->FourierToReal(geometry, xmpq, rp, s, profiles, fb, real_geom);
+    backend->ComputeJacobian(jac_input, rp, s, jac_output);
     backend->Synchronize();
     auto end = std::chrono::high_resolution_clock::now();
-    double us =
-        std::chrono::duration<double, std::micro>(end - start).count();
-    f2r_times.push_back(us);
+    jac_times.push_back(
+        std::chrono::duration<double, std::micro>(end - start).count());
   }
+  result.jacobian = CalcStats(jac_times);
 
-  // Benchmark ForcesToFourier.
-  std::vector<double> f2f_times;
-  f2f_times.reserve(config.iterations);
+  // Warmup for Metric
+  for (int i = 0; i < config.warmup; ++i) {
+    backend->ComputeMetricElements(metric_input, rp, s, metric_output);
+  }
+  backend->Synchronize();
+
+  // Benchmark Metric
+  std::vector<double> metric_times;
+  metric_times.reserve(config.iterations);
   for (int i = 0; i < config.iterations; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
-    backend->ForcesToFourier(real_forces, xmpq, rp, fc, s, fb,
-                             vmecpp::VacuumPressureState::kOff, forces);
+    backend->ComputeMetricElements(metric_input, rp, s, metric_output);
     backend->Synchronize();
     auto end = std::chrono::high_resolution_clock::now();
-    double us =
-        std::chrono::duration<double, std::micro>(end - start).count();
-    f2f_times.push_back(us);
+    metric_times.push_back(
+        std::chrono::duration<double, std::micro>(end - start).count());
   }
+  result.metric = CalcStats(metric_times);
 
-  // Calculate statistics.
-  auto [f2r_mean, f2r_std] = CalcStats(f2r_times);
-  auto [f2f_mean, f2f_std] = CalcStats(f2f_times);
+  // Warmup for MHD Forces
+  for (int i = 0; i < config.warmup; ++i) {
+    backend->ComputeMHDForces(mhd_input, rp, s, mhd_output);
+  }
+  backend->Synchronize();
 
-  result.fourier_to_real_mean_us = f2r_mean;
-  result.fourier_to_real_std_us = f2r_std;
-  result.forces_to_fourier_mean_us = f2f_mean;
-  result.forces_to_fourier_std_us = f2f_std;
-  result.total_mean_us = f2r_mean + f2f_mean;
+  // Benchmark MHD Forces
+  std::vector<double> mhd_times;
+  mhd_times.reserve(config.iterations);
+  for (int i = 0; i < config.iterations; ++i) {
+    auto start = std::chrono::high_resolution_clock::now();
+    backend->ComputeMHDForces(mhd_input, rp, s, mhd_output);
+    backend->Synchronize();
+    auto end = std::chrono::high_resolution_clock::now();
+    mhd_times.push_back(
+        std::chrono::duration<double, std::micro>(end - start).count());
+  }
+  result.mhd_forces = CalcStats(mhd_times);
+
+  result.total_mean_us =
+      result.jacobian.mean_us + result.metric.mean_us + result.mhd_forces.mean_us;
 
   return result;
 }
@@ -317,8 +381,6 @@ void PrintResults(const std::vector<BenchmarkResult>& results,
   std::cout << "\n";
   std::cout << "Configuration:\n";
   std::cout << "  Radial surfaces (ns):     " << config.ns << "\n";
-  std::cout << "  Poloidal modes (mpol):    " << config.mpol << "\n";
-  std::cout << "  Toroidal modes (ntor):    " << config.ntor << "\n";
   std::cout << "  Toroidal grid (nzeta):    " << config.nzeta << "\n";
   std::cout << "  Poloidal grid (ntheta):   " << config.ntheta << "\n";
   std::cout << "  Field periods (nfp):      " << config.nfp << "\n";
@@ -326,60 +388,72 @@ void PrintResults(const std::vector<BenchmarkResult>& results,
   std::cout << "  Warmup iterations:        " << config.warmup << "\n";
   std::cout << "\n";
 
-  // Estimate total operations.
+  // Calculate grid size
   int64_t grid_points =
       static_cast<int64_t>(config.ns) * config.nzeta * config.ntheta;
-  int64_t modes = static_cast<int64_t>(config.mpol) * (config.ntor + 1);
   std::cout << "Problem size:\n";
   std::cout << "  Total grid points:        " << grid_points << "\n";
-  std::cout << "  Total Fourier modes:      " << modes << "\n";
-  std::cout << "  Grid * modes:             " << grid_points * modes << "\n";
   std::cout << "\n";
 
   std::cout << "Results (times in microseconds):\n";
   std::cout << "\n";
-  std::cout << std::left << std::setw(20) << "Backend" << std::right
-            << std::setw(15) << "FourierToReal" << std::setw(15)
-            << "ForcesToFourier" << std::setw(15) << "Total"
-            << std::setw(12) << "Status" << "\n";
-  std::cout << std::string(77, '-') << "\n";
+  std::cout << std::left << std::setw(12) << "Backend" << std::right
+            << std::setw(14) << "Jacobian" << std::setw(14) << "Metric"
+            << std::setw(14) << "MHDForces" << std::setw(14) << "Total"
+            << std::setw(10) << "Status" << "\n";
+  std::cout << std::string(78, '-') << "\n";
 
   const BenchmarkResult* cpu_result = nullptr;
   for (const auto& r : results) {
-    if (r.backend_name.find("CPU") != std::string::npos) {
+    if (r.backend_name.find("CPU") != std::string::npos && r.available) {
       cpu_result = &r;
       break;
     }
   }
 
   for (const auto& r : results) {
-    std::cout << std::left << std::setw(20) << r.backend_name;
+    std::cout << std::left << std::setw(12) << r.backend_name;
 
     if (!r.available) {
-      std::cout << std::right << std::setw(15) << "-" << std::setw(15) << "-"
-                << std::setw(15) << "-" << std::setw(12) << "N/A"
-                << "\n";
+      std::cout << std::right << std::setw(14) << "-" << std::setw(14) << "-"
+                << std::setw(14) << "-" << std::setw(14) << "-" << std::setw(10)
+                << "N/A" << "\n";
       continue;
     }
 
     std::cout << std::right << std::fixed << std::setprecision(1)
-              << std::setw(15) << r.fourier_to_real_mean_us << std::setw(15)
-              << r.forces_to_fourier_mean_us << std::setw(15) << r.total_mean_us
-              << std::setw(12) << "OK"
+              << std::setw(14) << r.jacobian.mean_us << std::setw(14)
+              << r.metric.mean_us << std::setw(14) << r.mhd_forces.mean_us
+              << std::setw(14) << r.total_mean_us << std::setw(10) << "OK"
               << "\n";
   }
 
-  // Print speedup if both CPU and CUDA are available.
-  if (cpu_result != nullptr && cpu_result->available) {
+  // Print speedup comparison
+  if (cpu_result != nullptr) {
     std::cout << "\n";
     std::cout << "Speedup vs CPU:\n";
+    std::cout << std::string(50, '-') << "\n";
+    std::cout << std::left << std::setw(12) << "Backend" << std::right
+              << std::setw(12) << "Jacobian" << std::setw(12) << "Metric"
+              << std::setw(12) << "MHDForces" << std::setw(12) << "Total"
+              << "\n";
+    std::cout << std::string(50, '-') << "\n";
+
     for (const auto& r : results) {
       if (!r.available || r.backend_name.find("CPU") != std::string::npos) {
         continue;
       }
-      double speedup = cpu_result->total_mean_us / r.total_mean_us;
-      std::cout << "  " << r.backend_name << ": " << std::fixed
-                << std::setprecision(2) << speedup << "x\n";
+
+      double jac_speedup = cpu_result->jacobian.mean_us / r.jacobian.mean_us;
+      double met_speedup = cpu_result->metric.mean_us / r.metric.mean_us;
+      double mhd_speedup = cpu_result->mhd_forces.mean_us / r.mhd_forces.mean_us;
+      double total_speedup = cpu_result->total_mean_us / r.total_mean_us;
+
+      std::cout << std::left << std::setw(12) << r.backend_name << std::right
+                << std::fixed << std::setprecision(2) << std::setw(11)
+                << jac_speedup << "x" << std::setw(11) << met_speedup << "x"
+                << std::setw(11) << mhd_speedup << "x" << std::setw(11)
+                << total_speedup << "x" << "\n";
     }
   }
 
@@ -391,51 +465,18 @@ void PrintResults(const std::vector<BenchmarkResult>& results,
 int main(int argc, char* argv[]) {
   BenchmarkConfig config = ParseArgs(argc, argv);
 
-  // Create mock Sizes object.
-  vmecpp::Sizes s;
-  s.ns = config.ns;
-  s.mpol = config.mpol;
-  s.ntor = config.ntor;
-  s.nZeta = config.nzeta;
-  s.nThetaEven = config.ntheta;
-  s.nThetaReduced = config.ntheta / 2 + 1;
-  s.nThetaEff = s.nThetaReduced;
-  s.nZnT = s.nZeta * s.nThetaEff;
-  s.nnyq2 = config.ntor;
-  s.mnyq2 = config.mpol;
-  s.mnsize = config.mpol * (config.ntor + 1);
-  s.nfp = config.nfp;
-  s.lthreed = true;
-  s.lasym = false;
+  // Create Sizes object using the proper constructor.
+  vmecpp::Sizes s(/*lasym=*/false, config.nfp, config.mpol, config.ntor,
+                  config.ntheta, config.nzeta);
 
-  // Create Fourier basis.
-  vmecpp::FourierBasisFastPoloidal fb(&s);
-
-  // Create radial partitioning (single thread, full domain).
+  // Create radial partitioning and configure it for the benchmark.
   vmecpp::RadialPartitioning rp;
-  rp.nsMinF = 0;
-  rp.nsMaxF = config.ns;
-  rp.nsMinF1 = 0;
-  rp.nsMaxF1 = config.ns;
-  rp.nsMinH = 0;
-  rp.nsMaxH = config.ns - 1;
-  rp.nsMaxFIncludingLcfs = config.ns;
+  rp.adjustRadialPartitioning(/*num_threads=*/1, /*thread_id=*/0, config.ns,
+                              /*lfreeb=*/false, /*printout=*/false);
 
-  // Create radial profiles.
-  vmecpp::RadialProfiles profiles;
-  profiles.sqrtSF.resize(config.ns);
-  profiles.sqrtSH.resize(config.ns);
-  for (int j = 0; j < config.ns; ++j) {
-    double s_val = static_cast<double>(j) / static_cast<double>(config.ns - 1);
-    profiles.sqrtSF[j] = std::sqrt(s_val);
-    profiles.sqrtSH[j] = std::sqrt(s_val + 0.5 / static_cast<double>(config.ns - 1));
-  }
-
-  // Create flow control.
-  vmecpp::FlowControl fc;
-  fc.ns = config.ns;
-  fc.lfreeb = false;
-  fc.deltaS = 1.0 / static_cast<double>(config.ns - 1);
+  // Initialize benchmark data
+  BenchmarkData data;
+  data.Initialize(config, rp, s);
 
   std::cout << "Initializing backends...\n";
 
@@ -446,8 +487,7 @@ int main(int argc, char* argv[]) {
   {
     vmecpp::ComputeBackendCpu cpu_backend;
     std::cout << "  CPU backend: " << cpu_backend.GetName() << "\n";
-    results.push_back(
-        RunBenchmark(&cpu_backend, config, s, fb, rp, profiles, fc));
+    results.push_back(RunBenchmark(&cpu_backend, config, s, rp, data));
   }
 
   // CUDA backend (if available).
@@ -459,7 +499,7 @@ int main(int argc, char* argv[]) {
       auto& cuda_backend = cuda_result.value();
       std::cout << "  CUDA backend: " << cuda_backend->GetName() << "\n";
       results.push_back(
-          RunBenchmark(cuda_backend.get(), config, s, fb, rp, profiles, fc));
+          RunBenchmark(cuda_backend.get(), config, s, rp, data));
     } else {
       std::cout << "  CUDA backend: not available\n";
       BenchmarkResult cuda_unavailable;

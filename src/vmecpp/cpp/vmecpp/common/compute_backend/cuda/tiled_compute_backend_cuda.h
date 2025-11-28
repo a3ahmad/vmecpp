@@ -70,10 +70,10 @@ class TiledComputeBackendCuda : public ComputeBackend {
   void ForcesToFourier(const RealSpaceForces& forces,
                        const std::vector<double>& xmpq,
                        const RadialPartitioning& rp,
-                       const ForceCoefficients& fc, const Sizes& s,
+                       const FlowControl& fc, const Sizes& s,
                        const FourierBasisFastPoloidal& fb,
-                       const VacuumState vacuum_state,
-                       ForceFourierCoefficients& m_forces) override;
+                       VacuumPressureState vacuum_pressure_state,
+                       FourierForces& m_physical_forces) override;
 
   bool ComputeJacobian(const JacobianInput& input,
                        const RadialPartitioning& rp, const Sizes& s,

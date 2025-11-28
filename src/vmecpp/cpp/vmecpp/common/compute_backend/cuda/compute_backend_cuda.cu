@@ -547,6 +547,57 @@ class ComputeBackendCudaImpl {
   // Force output buffers.
   DeviceBuffer<double> d_frcc_, d_frss_, d_fzsc_, d_fzcs_;
   DeviceBuffer<double> d_flsc_, d_flcs_;
+
+  // Jacobian buffers.
+  DeviceBuffer<double> d_tau_, d_r12_, d_ru12_, d_zu12_, d_rs_, d_zs_;
+  DeviceBuffer<double> d_sqrt_sh_;
+  DeviceBuffer<double> d_min_tau_, d_max_tau_;
+
+  // Metric buffers.
+  DeviceBuffer<double> d_gsqrt_, d_guu_, d_guv_, d_gvv_;
+
+  // MHDForces additional buffers.
+  DeviceBuffer<double> d_bsupu_, d_bsupv_, d_total_pressure_;
+
+  // Flag to track if geometry data is already on device.
+  bool geometry_on_device_ = false;
+  int cached_full_grid_size_ = 0;
+  int cached_half_grid_size_ = 0;
+
+ public:
+  // Physics operations on GPU.
+  bool ComputeJacobianGPU(const JacobianInput& input,
+                          const RadialPartitioning& rp,
+                          const Sizes& s,
+                          JacobianOutput& m_output);
+
+  void ComputeMetricElementsGPU(const MetricInput& input,
+                                const RadialPartitioning& rp,
+                                const Sizes& s,
+                                MetricOutput& m_output);
+
+  void ComputeMHDForcesGPU(const MHDForcesInput& input,
+                           const RadialPartitioning& rp,
+                           const Sizes& s,
+                           MHDForcesOutput& m_output);
+
+  // Optimized: skip redundant copies when data is already on device.
+  // Call this to mark that subsequent operations should use cached device data.
+  void SetGeometryOnDevice(bool on_device) { geometry_on_device_ = on_device; }
+
+  // Optimized Jacobian: optionally skip copy-back.
+  bool ComputeJacobianGPUOptimized(const JacobianInput& input,
+                                    const RadialPartitioning& rp,
+                                    const Sizes& s,
+                                    JacobianOutput& m_output,
+                                    bool keep_on_device);
+
+  // Optimized Metric: use cached geometry if available.
+  void ComputeMetricElementsGPUOptimized(const MetricInput& input,
+                                          const RadialPartitioning& rp,
+                                          const Sizes& s,
+                                          MetricOutput& m_output,
+                                          bool keep_on_device);
 };
 
 void ComputeBackendCudaImpl::FourierToReal(const FourierGeometry& physical_x,
@@ -1235,6 +1286,486 @@ __global__ void ComputeMHDForcesKernel(
 }
 
 // =============================================================================
+// ComputeBackendCudaImpl GPU physics implementations
+// =============================================================================
+
+// GPU implementation of Jacobian computation.
+// Optimized: keeps geometry data on device for subsequent Metric operation.
+bool ComputeBackendCudaImpl::ComputeJacobianGPU(const JacobianInput& input,
+                                                 const RadialPartitioning& rp,
+                                                 const Sizes& s,
+                                                 JacobianOutput& m_output) {
+  cudaStream_t stream = streams_[0];
+
+  // Prepare kernel parameters.
+  PhysicsKernelParams params;
+  params.ns_min_f = rp.nsMinF;
+  params.ns_max_f = rp.nsMaxF;
+  params.ns_min_f1 = rp.nsMinF1;
+  params.ns_max_f1 = rp.nsMaxF1;
+  params.ns_min_h = rp.nsMinH;
+  params.ns_max_h = rp.nsMaxH;
+  params.n_znt = s.nZeta * s.nThetaEff;
+  params.n_theta_eff = s.nThetaEff;
+  params.delta_s = input.deltaS;
+
+  const int num_surfaces_h = rp.nsMaxH - rp.nsMinH;
+  const int num_surfaces_f1 = rp.nsMaxF1 - rp.nsMinF1;
+  const int full_grid_size = num_surfaces_f1 * params.n_znt;
+  const int half_grid_size = num_surfaces_h * params.n_znt;
+
+  // Copy input data to device.
+  d_r1_e_.CopyFromHost(input.r1_e.data(), full_grid_size, stream);
+  d_r1_o_.CopyFromHost(input.r1_o.data(), full_grid_size, stream);
+  d_z1_e_.CopyFromHost(input.z1_e.data(), full_grid_size, stream);
+  d_z1_o_.CopyFromHost(input.z1_o.data(), full_grid_size, stream);
+  d_ru_e_.CopyFromHost(input.ru_e.data(), full_grid_size, stream);
+  d_ru_o_.CopyFromHost(input.ru_o.data(), full_grid_size, stream);
+  d_zu_e_.CopyFromHost(input.zu_e.data(), full_grid_size, stream);
+  d_zu_o_.CopyFromHost(input.zu_o.data(), full_grid_size, stream);
+  d_sqrt_sh_.CopyFromHost(input.sqrtSH.data(), num_surfaces_h, stream);
+
+  // Cache sizes for subsequent operations (optimization).
+  cached_full_grid_size_ = full_grid_size;
+  cached_half_grid_size_ = half_grid_size;
+
+  // Allocate output buffers.
+  d_tau_.Resize(half_grid_size);
+  d_r12_.Resize(half_grid_size);
+  d_ru12_.Resize(half_grid_size);
+  d_zu12_.Resize(half_grid_size);
+  d_rs_.Resize(half_grid_size);
+  d_zs_.Resize(half_grid_size);
+  d_min_tau_.Resize(1);
+  d_max_tau_.Resize(1);
+
+  // Initialize min/max to detect bad Jacobian.
+  double init_min = 0.0, init_max = 0.0;
+  CUDA_CHECK(cudaMemcpyAsync(d_min_tau_.Data(), &init_min, sizeof(double),
+                              cudaMemcpyHostToDevice, stream));
+  CUDA_CHECK(cudaMemcpyAsync(d_max_tau_.Data(), &init_max, sizeof(double),
+                              cudaMemcpyHostToDevice, stream));
+
+  // Launch kernel.
+  const int threads_per_block = 256;
+  const int blocks_y = (params.n_znt + threads_per_block - 1) / threads_per_block;
+  dim3 grid(num_surfaces_h, blocks_y);
+  dim3 block(threads_per_block);
+
+  ComputeJacobianKernel<<<grid, block, 0, stream>>>(
+      d_r1_e_.Data(), d_r1_o_.Data(), d_z1_e_.Data(), d_z1_o_.Data(),
+      d_ru_e_.Data(), d_ru_o_.Data(), d_zu_e_.Data(), d_zu_o_.Data(),
+      d_sqrt_sh_.Data(), d_tau_.Data(), d_r12_.Data(), d_ru12_.Data(),
+      d_zu12_.Data(), d_rs_.Data(), d_zs_.Data(),
+      d_min_tau_.Data(), d_max_tau_.Data(), params);
+
+  // Copy results back to host.
+  d_tau_.CopyToHost(m_output.tau.data(), half_grid_size, stream);
+  d_r12_.CopyToHost(m_output.r12.data(), half_grid_size, stream);
+  d_ru12_.CopyToHost(m_output.ru12.data(), half_grid_size, stream);
+  d_zu12_.CopyToHost(m_output.zu12.data(), half_grid_size, stream);
+  d_rs_.CopyToHost(m_output.rs.data(), half_grid_size, stream);
+  d_zs_.CopyToHost(m_output.zs.data(), half_grid_size, stream);
+
+  // Check for bad Jacobian.
+  double min_tau, max_tau;
+  CUDA_CHECK(cudaMemcpyAsync(&min_tau, d_min_tau_.Data(), sizeof(double),
+                              cudaMemcpyDeviceToHost, stream));
+  CUDA_CHECK(cudaMemcpyAsync(&max_tau, d_max_tau_.Data(), sizeof(double),
+                              cudaMemcpyDeviceToHost, stream));
+  CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  // Mark geometry + jacobian data as on device for subsequent operations.
+  geometry_on_device_ = true;
+
+  // Return true if Jacobian is bad (has both positive and negative values
+  // or all values are negative).
+  return (min_tau < 0.0 && max_tau > 0.0) || (max_tau <= 0.0);
+}
+
+// GPU implementation of metric elements computation.
+// Optimized: reuses geometry data from Jacobian if already on device.
+void ComputeBackendCudaImpl::ComputeMetricElementsGPU(const MetricInput& input,
+                                                       const RadialPartitioning& rp,
+                                                       const Sizes& s,
+                                                       MetricOutput& m_output) {
+  cudaStream_t stream = streams_[0];
+
+  // Prepare kernel parameters.
+  PhysicsKernelParams params;
+  params.ns_min_f = rp.nsMinF;
+  params.ns_max_f = rp.nsMaxF;
+  params.ns_min_f1 = rp.nsMinF1;
+  params.ns_max_f1 = rp.nsMaxF1;
+  params.ns_min_h = rp.nsMinH;
+  params.ns_max_h = rp.nsMaxH;
+  params.n_znt = s.nZeta * s.nThetaEff;
+  params.n_theta_eff = s.nThetaEff;
+  params.lthreed = input.lthreed;
+
+  const int num_surfaces_h = rp.nsMaxH - rp.nsMinH;
+  const int num_surfaces_f1 = rp.nsMaxF1 - rp.nsMinF1;
+  const int full_grid_size = num_surfaces_f1 * params.n_znt;
+  const int half_grid_size = num_surfaces_h * params.n_znt;
+
+  // Check if geometry data is already on device from Jacobian.
+  const bool use_cached = geometry_on_device_ &&
+                          (full_grid_size == cached_full_grid_size_) &&
+                          (half_grid_size == cached_half_grid_size_);
+
+  // Only copy geometry data if not already on device.
+  if (!use_cached) {
+    d_r1_e_.CopyFromHost(input.r1_e.data(), full_grid_size, stream);
+    d_r1_o_.CopyFromHost(input.r1_o.data(), full_grid_size, stream);
+    d_ru_e_.CopyFromHost(input.ru_e.data(), full_grid_size, stream);
+    d_ru_o_.CopyFromHost(input.ru_o.data(), full_grid_size, stream);
+    d_zu_e_.CopyFromHost(input.zu_e.data(), full_grid_size, stream);
+    d_zu_o_.CopyFromHost(input.zu_o.data(), full_grid_size, stream);
+    d_sqrt_sh_.CopyFromHost(input.sqrtSH.data(), num_surfaces_h, stream);
+    // tau and r12 from host if not cached.
+    d_tau_.CopyFromHost(input.tau.data(), half_grid_size, stream);
+    d_r12_.CopyFromHost(input.r12.data(), half_grid_size, stream);
+  }
+  // Note: when use_cached is true, tau and r12 are already on device from Jacobian.
+
+  // Always copy metric-specific data (rv, zv, sqrtSF).
+  d_rv_e_.CopyFromHost(input.rv_e.data(), full_grid_size, stream);
+  d_rv_o_.CopyFromHost(input.rv_o.data(), full_grid_size, stream);
+  d_zv_e_.CopyFromHost(input.zv_e.data(), full_grid_size, stream);
+  d_zv_o_.CopyFromHost(input.zv_o.data(), full_grid_size, stream);
+  d_sqrt_sf_.CopyFromHost(input.sqrtSF.data(), num_surfaces_f1, stream);
+
+  // Allocate output buffers.
+  d_gsqrt_.Resize(half_grid_size);
+  d_guu_.Resize(half_grid_size);
+  d_guv_.Resize(half_grid_size);
+  d_gvv_.Resize(half_grid_size);
+
+  // Launch kernel.
+  const int threads_per_block = 256;
+  const int blocks_y = (params.n_znt + threads_per_block - 1) / threads_per_block;
+  dim3 grid(num_surfaces_h, blocks_y);
+  dim3 block(threads_per_block);
+
+  ComputeMetricElementsKernel<<<grid, block, 0, stream>>>(
+      d_r1_e_.Data(), d_r1_o_.Data(), d_ru_e_.Data(), d_ru_o_.Data(),
+      d_zu_e_.Data(), d_zu_o_.Data(), d_rv_e_.Data(), d_rv_o_.Data(),
+      d_zv_e_.Data(), d_zv_o_.Data(), d_tau_.Data(), d_r12_.Data(),
+      d_sqrt_sf_.Data(), d_sqrt_sh_.Data(),
+      d_gsqrt_.Data(), d_guu_.Data(), d_guv_.Data(), d_gvv_.Data(), params);
+
+  // Copy results back to host.
+  d_gsqrt_.CopyToHost(m_output.gsqrt.data(), half_grid_size, stream);
+  d_guu_.CopyToHost(m_output.guu.data(), half_grid_size, stream);
+  d_guv_.CopyToHost(m_output.guv.data(), half_grid_size, stream);
+  d_gvv_.CopyToHost(m_output.gvv.data(), half_grid_size, stream);
+
+  CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  // Keep geometry data on device for subsequent MHDForces.
+  geometry_on_device_ = true;
+  cached_full_grid_size_ = full_grid_size;
+  cached_half_grid_size_ = half_grid_size;
+}
+
+// GPU implementation of MHD forces computation.
+// Optimized: reuses geometry/jacobian/metric data from previous operations.
+void ComputeBackendCudaImpl::ComputeMHDForcesGPU(const MHDForcesInput& input,
+                                                  const RadialPartitioning& rp,
+                                                  const Sizes& s,
+                                                  MHDForcesOutput& m_output) {
+  cudaStream_t stream = streams_[0];
+
+  // Prepare kernel parameters.
+  PhysicsKernelParams params;
+  params.ns_min_f = rp.nsMinF;
+  params.ns_max_f = rp.nsMaxF;
+  params.ns_min_f1 = rp.nsMinF1;
+  params.ns_max_f1 = rp.nsMaxF1;
+  params.ns_min_h = rp.nsMinH;
+  params.ns_max_h = rp.nsMaxH;
+  params.ns_min_fi = rp.nsMinFi;
+  params.ns_max_fi = rp.nsMaxFi;
+  params.n_znt = s.nZeta * s.nThetaEff;
+  params.n_theta_eff = s.nThetaEff;
+  params.delta_s = input.deltaS;
+  params.lthreed = input.lthreed;
+  params.lfreeb = input.lfreeb;
+  params.ns = input.ns;
+
+  // Calculate j_max_rz similar to CPU implementation.
+  int j_max_rz = std::min(rp.nsMaxF, input.ns - 1);
+  if (input.lfreeb) {
+    j_max_rz = std::min(rp.nsMaxF, input.ns);
+  }
+
+  const int num_surfaces_h = rp.nsMaxH - rp.nsMinH;
+  const int num_surfaces_f1 = rp.nsMaxF1 - rp.nsMinF1;
+  const int num_surfaces_compute = j_max_rz - rp.nsMinF;
+  const int full_grid_size = num_surfaces_f1 * params.n_znt;
+  const int half_grid_size = num_surfaces_h * params.n_znt;
+  const int force_grid_size = num_surfaces_compute * params.n_znt;
+
+  if (num_surfaces_compute <= 0) {
+    return;
+  }
+
+  // Check if data is cached from Jacobian/Metric operations.
+  const bool use_cached = geometry_on_device_ &&
+                          (full_grid_size == cached_full_grid_size_) &&
+                          (half_grid_size == cached_half_grid_size_);
+
+  // Copy geometry data only if not cached.
+  if (!use_cached) {
+    d_r1_e_.CopyFromHost(input.r1_e.data(), full_grid_size, stream);
+    d_r1_o_.CopyFromHost(input.r1_o.data(), full_grid_size, stream);
+    d_z1_o_.CopyFromHost(input.z1_o.data(), full_grid_size, stream);
+    d_ru_e_.CopyFromHost(input.ru_e.data(), full_grid_size, stream);
+    d_ru_o_.CopyFromHost(input.ru_o.data(), full_grid_size, stream);
+    d_zu_e_.CopyFromHost(input.zu_e.data(), full_grid_size, stream);
+    d_zu_o_.CopyFromHost(input.zu_o.data(), full_grid_size, stream);
+    d_rv_e_.CopyFromHost(input.rv_e.data(), full_grid_size, stream);
+    d_rv_o_.CopyFromHost(input.rv_o.data(), full_grid_size, stream);
+    d_zv_e_.CopyFromHost(input.zv_e.data(), full_grid_size, stream);
+    d_zv_o_.CopyFromHost(input.zv_o.data(), full_grid_size, stream);
+    // Jacobian outputs.
+    d_r12_.CopyFromHost(input.r12.data(), half_grid_size, stream);
+    d_ru12_.CopyFromHost(input.ru12.data(), half_grid_size, stream);
+    d_zu12_.CopyFromHost(input.zu12.data(), half_grid_size, stream);
+    d_rs_.CopyFromHost(input.rs.data(), half_grid_size, stream);
+    d_zs_.CopyFromHost(input.zs.data(), half_grid_size, stream);
+    d_tau_.CopyFromHost(input.tau.data(), half_grid_size, stream);
+    // Metric output.
+    d_gsqrt_.CopyFromHost(input.gsqrt.data(), half_grid_size, stream);
+    d_sqrt_sf_.CopyFromHost(input.sqrtSF.data(), num_surfaces_f1, stream);
+    d_sqrt_sh_.CopyFromHost(input.sqrtSH.data(), num_surfaces_h, stream);
+  }
+  // Note: when use_cached=true, geometry/jacobian/metric data is on device.
+
+  // Always copy MHDForces-specific data (bsupu, bsupv, totalPressure).
+  d_bsupu_.CopyFromHost(input.bsupu.data(), half_grid_size, stream);
+  d_bsupv_.CopyFromHost(input.bsupv.data(), half_grid_size, stream);
+  d_total_pressure_.CopyFromHost(input.totalPressure.data(), half_grid_size, stream);
+
+  // Allocate output buffers.
+  d_armn_e_.Resize(force_grid_size);
+  d_armn_o_.Resize(force_grid_size);
+  d_azmn_e_.Resize(force_grid_size);
+  d_azmn_o_.Resize(force_grid_size);
+  d_brmn_e_.Resize(force_grid_size);
+  d_brmn_o_.Resize(force_grid_size);
+  d_bzmn_e_.Resize(force_grid_size);
+  d_bzmn_o_.Resize(force_grid_size);
+  d_crmn_e_.Resize(force_grid_size);
+  d_crmn_o_.Resize(force_grid_size);
+  d_czmn_e_.Resize(force_grid_size);
+  d_czmn_o_.Resize(force_grid_size);
+
+  // Launch kernel.
+  const int threads_per_block = 256;
+  const int blocks_y = (params.n_znt + threads_per_block - 1) / threads_per_block;
+  dim3 grid(num_surfaces_compute, blocks_y);
+  dim3 block(threads_per_block);
+
+  ComputeMHDForcesKernel<<<grid, block, 0, stream>>>(
+      d_r1_e_.Data(), d_r1_o_.Data(), d_z1_o_.Data(),
+      d_ru_e_.Data(), d_ru_o_.Data(), d_zu_e_.Data(), d_zu_o_.Data(),
+      d_rv_e_.Data(), d_rv_o_.Data(), d_zv_e_.Data(), d_zv_o_.Data(),
+      d_r12_.Data(), d_ru12_.Data(), d_zu12_.Data(), d_rs_.Data(), d_zs_.Data(),
+      d_tau_.Data(), d_gsqrt_.Data(), d_bsupu_.Data(), d_bsupv_.Data(),
+      d_total_pressure_.Data(), d_sqrt_sf_.Data(), d_sqrt_sh_.Data(),
+      d_armn_e_.Data(), d_armn_o_.Data(), d_azmn_e_.Data(), d_azmn_o_.Data(),
+      d_brmn_e_.Data(), d_brmn_o_.Data(), d_bzmn_e_.Data(), d_bzmn_o_.Data(),
+      d_crmn_e_.Data(), d_crmn_o_.Data(), d_czmn_e_.Data(), d_czmn_o_.Data(),
+      params, j_max_rz);
+
+  // Copy results back to host.
+  d_armn_e_.CopyToHost(m_output.armn_e.data(), force_grid_size, stream);
+  d_armn_o_.CopyToHost(m_output.armn_o.data(), force_grid_size, stream);
+  d_azmn_e_.CopyToHost(m_output.azmn_e.data(), force_grid_size, stream);
+  d_azmn_o_.CopyToHost(m_output.azmn_o.data(), force_grid_size, stream);
+  d_brmn_e_.CopyToHost(m_output.brmn_e.data(), force_grid_size, stream);
+  d_brmn_o_.CopyToHost(m_output.brmn_o.data(), force_grid_size, stream);
+  d_bzmn_e_.CopyToHost(m_output.bzmn_e.data(), force_grid_size, stream);
+  d_bzmn_o_.CopyToHost(m_output.bzmn_o.data(), force_grid_size, stream);
+  d_crmn_e_.CopyToHost(m_output.crmn_e.data(), force_grid_size, stream);
+  d_crmn_o_.CopyToHost(m_output.crmn_o.data(), force_grid_size, stream);
+  d_czmn_e_.CopyToHost(m_output.czmn_e.data(), force_grid_size, stream);
+  d_czmn_o_.CopyToHost(m_output.czmn_o.data(), force_grid_size, stream);
+
+  CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  // Reset cache flag - MHDForces is typically the last in the chain.
+  geometry_on_device_ = false;
+}
+
+// =============================================================================
+// Optimized GPU implementations (minimize host-device transfers)
+// =============================================================================
+
+bool ComputeBackendCudaImpl::ComputeJacobianGPUOptimized(
+    const JacobianInput& input, const RadialPartitioning& rp, const Sizes& s,
+    JacobianOutput& m_output, bool keep_on_device) {
+  cudaStream_t stream = streams_[0];
+
+  PhysicsKernelParams params;
+  params.ns_min_f = rp.nsMinF;
+  params.ns_max_f = rp.nsMaxF;
+  params.ns_min_f1 = rp.nsMinF1;
+  params.ns_max_f1 = rp.nsMaxF1;
+  params.ns_min_h = rp.nsMinH;
+  params.ns_max_h = rp.nsMaxH;
+  params.n_znt = s.nZeta * s.nThetaEff;
+  params.n_theta_eff = s.nThetaEff;
+  params.delta_s = input.deltaS;
+
+  const int num_surfaces_h = rp.nsMaxH - rp.nsMinH;
+  const int num_surfaces_f1 = rp.nsMaxF1 - rp.nsMinF1;
+  const int full_grid_size = num_surfaces_f1 * params.n_znt;
+  const int half_grid_size = num_surfaces_h * params.n_znt;
+
+  // Copy geometry input data to device.
+  d_r1_e_.CopyFromHost(input.r1_e.data(), full_grid_size, stream);
+  d_r1_o_.CopyFromHost(input.r1_o.data(), full_grid_size, stream);
+  d_z1_e_.CopyFromHost(input.z1_e.data(), full_grid_size, stream);
+  d_z1_o_.CopyFromHost(input.z1_o.data(), full_grid_size, stream);
+  d_ru_e_.CopyFromHost(input.ru_e.data(), full_grid_size, stream);
+  d_ru_o_.CopyFromHost(input.ru_o.data(), full_grid_size, stream);
+  d_zu_e_.CopyFromHost(input.zu_e.data(), full_grid_size, stream);
+  d_zu_o_.CopyFromHost(input.zu_o.data(), full_grid_size, stream);
+  d_sqrt_sh_.CopyFromHost(input.sqrtSH.data(), num_surfaces_h, stream);
+
+  // Cache sizes for subsequent operations.
+  cached_full_grid_size_ = full_grid_size;
+  cached_half_grid_size_ = half_grid_size;
+
+  // Allocate output buffers.
+  d_tau_.Resize(half_grid_size);
+  d_r12_.Resize(half_grid_size);
+  d_ru12_.Resize(half_grid_size);
+  d_zu12_.Resize(half_grid_size);
+  d_rs_.Resize(half_grid_size);
+  d_zs_.Resize(half_grid_size);
+  d_min_tau_.Resize(1);
+  d_max_tau_.Resize(1);
+
+  double init_min = 0.0, init_max = 0.0;
+  CUDA_CHECK(cudaMemcpyAsync(d_min_tau_.Data(), &init_min, sizeof(double),
+                              cudaMemcpyHostToDevice, stream));
+  CUDA_CHECK(cudaMemcpyAsync(d_max_tau_.Data(), &init_max, sizeof(double),
+                              cudaMemcpyHostToDevice, stream));
+
+  const int threads_per_block = 256;
+  const int blocks_y = (params.n_znt + threads_per_block - 1) / threads_per_block;
+  dim3 grid(num_surfaces_h, blocks_y);
+  dim3 block(threads_per_block);
+
+  ComputeJacobianKernel<<<grid, block, 0, stream>>>(
+      d_r1_e_.Data(), d_r1_o_.Data(), d_z1_e_.Data(), d_z1_o_.Data(),
+      d_ru_e_.Data(), d_ru_o_.Data(), d_zu_e_.Data(), d_zu_o_.Data(),
+      d_sqrt_sh_.Data(), d_tau_.Data(), d_r12_.Data(), d_ru12_.Data(),
+      d_zu12_.Data(), d_rs_.Data(), d_zs_.Data(),
+      d_min_tau_.Data(), d_max_tau_.Data(), params);
+
+  // Copy results back to host.
+  d_tau_.CopyToHost(m_output.tau.data(), half_grid_size, stream);
+  d_r12_.CopyToHost(m_output.r12.data(), half_grid_size, stream);
+  d_ru12_.CopyToHost(m_output.ru12.data(), half_grid_size, stream);
+  d_zu12_.CopyToHost(m_output.zu12.data(), half_grid_size, stream);
+  d_rs_.CopyToHost(m_output.rs.data(), half_grid_size, stream);
+  d_zs_.CopyToHost(m_output.zs.data(), half_grid_size, stream);
+
+  double min_tau, max_tau;
+  CUDA_CHECK(cudaMemcpyAsync(&min_tau, d_min_tau_.Data(), sizeof(double),
+                              cudaMemcpyDeviceToHost, stream));
+  CUDA_CHECK(cudaMemcpyAsync(&max_tau, d_max_tau_.Data(), sizeof(double),
+                              cudaMemcpyDeviceToHost, stream));
+  CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  // Mark that geometry + jacobian data is on device for subsequent operations.
+  geometry_on_device_ = keep_on_device;
+
+  return (min_tau < 0.0 && max_tau > 0.0) || (max_tau <= 0.0);
+}
+
+void ComputeBackendCudaImpl::ComputeMetricElementsGPUOptimized(
+    const MetricInput& input, const RadialPartitioning& rp, const Sizes& s,
+    MetricOutput& m_output, bool keep_on_device) {
+  cudaStream_t stream = streams_[0];
+
+  PhysicsKernelParams params;
+  params.ns_min_f = rp.nsMinF;
+  params.ns_max_f = rp.nsMaxF;
+  params.ns_min_f1 = rp.nsMinF1;
+  params.ns_max_f1 = rp.nsMaxF1;
+  params.ns_min_h = rp.nsMinH;
+  params.ns_max_h = rp.nsMaxH;
+  params.n_znt = s.nZeta * s.nThetaEff;
+  params.n_theta_eff = s.nThetaEff;
+  params.lthreed = input.lthreed;
+
+  const int num_surfaces_h = rp.nsMaxH - rp.nsMinH;
+  const int num_surfaces_f1 = rp.nsMaxF1 - rp.nsMinF1;
+  const int full_grid_size = num_surfaces_f1 * params.n_znt;
+  const int half_grid_size = num_surfaces_h * params.n_znt;
+
+  // Only copy geometry data if not already on device from Jacobian.
+  if (!geometry_on_device_ ||
+      full_grid_size != cached_full_grid_size_ ||
+      half_grid_size != cached_half_grid_size_) {
+    d_r1_e_.CopyFromHost(input.r1_e.data(), full_grid_size, stream);
+    d_r1_o_.CopyFromHost(input.r1_o.data(), full_grid_size, stream);
+    d_ru_e_.CopyFromHost(input.ru_e.data(), full_grid_size, stream);
+    d_ru_o_.CopyFromHost(input.ru_o.data(), full_grid_size, stream);
+    d_zu_e_.CopyFromHost(input.zu_e.data(), full_grid_size, stream);
+    d_zu_o_.CopyFromHost(input.zu_o.data(), full_grid_size, stream);
+    d_sqrt_sh_.CopyFromHost(input.sqrtSH.data(), num_surfaces_h, stream);
+  }
+
+  // Always copy metric-specific inputs (rv, zv, tau, r12, sqrtSF).
+  d_rv_e_.CopyFromHost(input.rv_e.data(), full_grid_size, stream);
+  d_rv_o_.CopyFromHost(input.rv_o.data(), full_grid_size, stream);
+  d_zv_e_.CopyFromHost(input.zv_e.data(), full_grid_size, stream);
+  d_zv_o_.CopyFromHost(input.zv_o.data(), full_grid_size, stream);
+  d_sqrt_sf_.CopyFromHost(input.sqrtSF.data(), num_surfaces_f1, stream);
+
+  // Use tau and r12 from device if from Jacobian, else copy from host.
+  if (!geometry_on_device_) {
+    d_tau_.CopyFromHost(input.tau.data(), half_grid_size, stream);
+    d_r12_.CopyFromHost(input.r12.data(), half_grid_size, stream);
+  }
+  // Note: tau and r12 are already on device from Jacobian.
+
+  // Allocate output buffers.
+  d_gsqrt_.Resize(half_grid_size);
+  d_guu_.Resize(half_grid_size);
+  d_guv_.Resize(half_grid_size);
+  d_gvv_.Resize(half_grid_size);
+
+  const int threads_per_block = 256;
+  const int blocks_y = (params.n_znt + threads_per_block - 1) / threads_per_block;
+  dim3 grid(num_surfaces_h, blocks_y);
+  dim3 block(threads_per_block);
+
+  ComputeMetricElementsKernel<<<grid, block, 0, stream>>>(
+      d_r1_e_.Data(), d_r1_o_.Data(), d_ru_e_.Data(), d_ru_o_.Data(),
+      d_zu_e_.Data(), d_zu_o_.Data(), d_rv_e_.Data(), d_rv_o_.Data(),
+      d_zv_e_.Data(), d_zv_o_.Data(), d_tau_.Data(), d_r12_.Data(),
+      d_sqrt_sf_.Data(), d_sqrt_sh_.Data(),
+      d_gsqrt_.Data(), d_guu_.Data(), d_guv_.Data(), d_gvv_.Data(), params);
+
+  // Copy results back to host.
+  d_gsqrt_.CopyToHost(m_output.gsqrt.data(), half_grid_size, stream);
+  d_guu_.CopyToHost(m_output.guu.data(), half_grid_size, stream);
+  d_guv_.CopyToHost(m_output.guv.data(), half_grid_size, stream);
+  d_gvv_.CopyToHost(m_output.gvv.data(), half_grid_size, stream);
+
+  CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  geometry_on_device_ = keep_on_device;
+}
+
+// =============================================================================
 // Additional ComputeBackendCuda implementations
 // =============================================================================
 
@@ -1242,19 +1773,25 @@ bool ComputeBackendCuda::ComputeJacobian(const JacobianInput& input,
                                          const RadialPartitioning& rp,
                                          const Sizes& s,
                                          JacobianOutput& m_output) {
-  // Fall back to CPU implementation for now - CUDA kernel needs refinement.
-  // The atomic min/max for bad Jacobian detection requires special handling.
-  static ComputeBackendCpu cpu_backend;
-  return cpu_backend.ComputeJacobian(input, rp, s, m_output);
+  if (!impl_ || !impl_->IsAvailable()) {
+    // Fall back to CPU if CUDA is not available.
+    static ComputeBackendCpu cpu_backend;
+    return cpu_backend.ComputeJacobian(input, rp, s, m_output);
+  }
+  return impl_->ComputeJacobianGPU(input, rp, s, m_output);
 }
 
 void ComputeBackendCuda::ComputeMetricElements(const MetricInput& input,
                                                const RadialPartitioning& rp,
                                                const Sizes& s,
                                                MetricOutput& m_output) {
-  // Fall back to CPU implementation for now.
-  static ComputeBackendCpu cpu_backend;
-  cpu_backend.ComputeMetricElements(input, rp, s, m_output);
+  if (!impl_ || !impl_->IsAvailable()) {
+    // Fall back to CPU if CUDA is not available.
+    static ComputeBackendCpu cpu_backend;
+    cpu_backend.ComputeMetricElements(input, rp, s, m_output);
+    return;
+  }
+  impl_->ComputeMetricElementsGPU(input, rp, s, m_output);
 }
 
 void ComputeBackendCuda::ComputeBContra(const BContraInput& input,
@@ -1262,6 +1799,7 @@ void ComputeBackendCuda::ComputeBContra(const BContraInput& input,
                                         const Sizes& s,
                                         BContraOutput& m_output) {
   // Fall back to CPU implementation - this has complex reduction operations.
+  // TODO: Implement GPU version when needed.
   static ComputeBackendCpu cpu_backend;
   cpu_backend.ComputeBContra(input, rp, s, m_output);
 }
@@ -1270,9 +1808,13 @@ void ComputeBackendCuda::ComputeMHDForces(const MHDForcesInput& input,
                                           const RadialPartitioning& rp,
                                           const Sizes& s,
                                           MHDForcesOutput& m_output) {
-  // Fall back to CPU implementation for now.
-  static ComputeBackendCpu cpu_backend;
-  cpu_backend.ComputeMHDForces(input, rp, s, m_output);
+  if (!impl_ || !impl_->IsAvailable()) {
+    // Fall back to CPU if CUDA is not available.
+    static ComputeBackendCpu cpu_backend;
+    cpu_backend.ComputeMHDForces(input, rp, s, m_output);
+    return;
+  }
+  impl_->ComputeMHDForcesGPU(input, rp, s, m_output);
 }
 
 }  // namespace vmecpp

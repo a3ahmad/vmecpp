@@ -32,8 +32,13 @@ if(VMECPP_ENABLE_CUDA)
   if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
-    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD 20)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    # Set CUDA architectures if not specified by user (targeting Hopper and Blackwell)
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+      set(CMAKE_CUDA_ARCHITECTURES "80;86;89;90;120")
+      message(STATUS "CUDA architectures not specified, using: ${CMAKE_CUDA_ARCHITECTURES}")
+    endif()
     # Use the same C++ standard for CUDA as for C++
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
     add_compile_definitions(VMECPP_HAS_CUDA)
@@ -148,9 +153,7 @@ if(VMECPP_ENABLE_CUDA)
     ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tile_memory_budget.cu
     ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/cuda_memory.cu
     ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tiled_compute_backend_cuda.cu
-  )
-  # TileScheduler is pure C++ (no CUDA), so it can be part of regular sources
-  list(APPEND vmecpp_sources
+    # TileScheduler is pure C++ but kept with CUDA library for cohesion
     ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/cuda/tile_scheduler.cc
   )
   add_library(vmecpp_cuda STATIC ${vmecpp_cuda_sources})
@@ -158,6 +161,7 @@ if(VMECPP_ENABLE_CUDA)
   target_link_libraries(vmecpp_cuda PRIVATE CUDA::cudart)
   set_target_properties(vmecpp_cuda PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RESOLVE_DEVICE_SYMBOLS ON
     POSITION_INDEPENDENT_CODE ON
   )
   target_link_libraries(vmecpp_core PRIVATE vmecpp_cuda CUDA::cudart)
@@ -171,17 +175,28 @@ target_link_libraries(vmecpp_core PRIVATE absl::strings)
 
 # Add the backend benchmark executable.
 add_executable(backend_benchmark ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/benchmark/backend_benchmark.cc)
-target_link_libraries(backend_benchmark vmecpp_core)
 if(VMECPP_ENABLE_CUDA)
+  # Link vmecpp_cuda BEFORE vmecpp_core to ensure proper symbol resolution
   target_link_libraries(backend_benchmark vmecpp_cuda CUDA::cudart)
+  set_target_properties(backend_benchmark PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RESOLVE_DEVICE_SYMBOLS ON
+  )
 endif()
+target_link_libraries(backend_benchmark vmecpp_core)
 
 # Add the tiled backend benchmark executable.
 add_executable(tiled_benchmark ${PROJECT_SOURCE_DIR}/src/vmecpp/cpp/vmecpp/common/compute_backend/benchmark/tiled_benchmark.cc)
-target_link_libraries(tiled_benchmark vmecpp_core)
 if(VMECPP_ENABLE_CUDA)
+  # Link vmecpp_cuda BEFORE vmecpp_core to ensure proper symbol resolution
+  # vmecpp_cuda contains TileScheduler and CUDA kernels needed by tiled_benchmark
   target_link_libraries(tiled_benchmark vmecpp_cuda CUDA::cudart)
+  set_target_properties(tiled_benchmark PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RESOLVE_DEVICE_SYMBOLS ON
+  )
 endif()
+target_link_libraries(tiled_benchmark vmecpp_core)
 
 # Now add the pybind11 module for VMEC++.
 FetchContent_MakeAvailable(pybind11)
