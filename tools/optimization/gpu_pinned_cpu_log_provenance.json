@@ -1,0 +1,86 @@
+{
+  "license": "LGPL-2.1-or-later; notices retained inheader, fulllicense adjacent",
+  "primary_Ubuntu_2_39_source": {
+    "downloads": [
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.39-0ubuntu8.9.dsc",
+        "bytes": 9387,
+        "SHA256": "1b73a89e0910eb3e5920cde639ac7eb606256d8ee809688ff9b5912b67002711"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.39.orig.tar.xz",
+        "bytes": 18520988,
+        "SHA256": "f77bd47cf8170c57365ae7bf86696c118adb3b120d3259c64c502d3dc1e2d926"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.39-0ubuntu8.9.debian.tar.xz",
+        "bytes": 491440,
+        "SHA256": "d6114f2302896a3c8612453e1bf1d0e61603e3029ba4a7c246fbb1ab4c48d2b0"
+      }
+    ],
+    "dsc_SHA256_verified_for_archives": true,
+    "GPG_signature_verified": false,
+    "extracted": [
+      "glibc-2.39/COPYING.LIB",
+      "glibc-2.39/sysdeps/i386/fpu/e_log_data.c",
+      "glibc-2.39/sysdeps/ieee754/dbl-64/e_log.c",
+      "glibc-2.39/sysdeps/ieee754/dbl-64/e_log_data.c",
+      "glibc-2.39/sysdeps/ieee754/dbl-64/math_config.h",
+      "glibc-2.39/sysdeps/ieee754/flt-32/math_config.h",
+      "glibc-2.39/sysdeps/m68k/m680x0/fpu/e_log.c",
+      "glibc-2.39/sysdeps/m68k/m680x0/fpu/e_log_data.c",
+      "glibc-2.39/sysdeps/powerpc/powerpc64/le/fpu/multiarch/e_log.c",
+      "glibc-2.39/sysdeps/x86_64/fpu/multiarch/e_log-fma.c",
+      "glibc-2.39/sysdeps/x86_64/fpu/multiarch/e_log.c",
+      "glibc-2.39/sysdeps/x86_64/multiarch/ifunc-avx2.h"
+    ],
+    "Ubuntu_patch_hits": []
+  },
+  "primary_Ubuntu_2_43_source": {
+    "downloads": [
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.43-2ubuntu2.4.dsc",
+        "bytes": 9078,
+        "SHA256": "da10d551ca51076bf7bf663de38369d04e267386b8211c283c2814e68e482ed3"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.43.orig.tar.xz",
+        "bytes": 20297012,
+        "SHA256": "d9c86c6b5dbddb43a3e08270c5844fc5177d19442cf5b8df4be7c07cd5fa3831"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.43-2ubuntu2.4.debian.tar.xz",
+        "bytes": 530764,
+        "SHA256": "28103a7cf808c29901c6053d89a4e8299880abfbb850c0d97a09c8df8533e306"
+      }
+    ],
+    "dsc_SHA256_verified": true,
+    "GPG_signature_verified": false,
+    "matching_Ubuntu_patch_mentions": []
+  },
+  "actual_stack_fingerprints": [
+    {
+      "name": "local2.39",
+      "file_SHA256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+      "wrapper": "0x3a5f0",
+      "inner_GOT": "0xe7f40",
+      "inner": "0x79d50",
+      "table": "0xb5240",
+      "wrapper57_SHA256": "464df4564afe4966f1591ebc7973b0e94a054b00376e07e7b8ae5c0e330af853",
+      "inner570_SHA256": "17e98c6f826879db72e0d7bfa48188e752c6e6a97857c58f01faa65cedb97685",
+      "table2192_SHA256": "d8f77f04619b10fe29031a98a0596af699fd6329c5253affc554092a17cf1bd8"
+    },
+    {
+      "name": "native2.43",
+      "file_SHA256": "1c488db6f4fe8cecb72456bc018de000b7a9b539c2994864b0416b5e8371b3d8",
+      "wrapper": "0x5b100",
+      "inner_GOT": "0x124f20",
+      "inner": "0xa11c0",
+      "table": "0xe71e0",
+      "wrapper57_SHA256": "e122c9aa45ae0e97c3c36754cd3ea9d3d70e9855701ece6911ebff6227e683a5",
+      "inner570_SHA256": "d5baaf8ef01cfe6f0ebf397490091168ee32a2b9f091679c91fdb4e6c6f9c858",
+      "table2192_SHA256": "d8f77f04619b10fe29031a98a0596af699fd6329c5253affc554092a17cf1bd8"
+    }
+  ],
+  "proof_scope": "Positive finite normal binary64 input, exactmatched CPUFMAinstructionDAG andconstants, explicitRNprimitives. Requiresruntimeactualbinding+standardFPenvironment. Unsupporteddeclines; originalCPUreference retainedatthisstage."
+}

@@ -1,3 +1,7 @@
+# Measured numerical snapshots are byte-exact archives, checked by build.py.
+# Formatting them would invalidate the recorded source provenance hashes.
+exclude: ^tools/optimization/gb202/frozen/
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.7.1"
@@ -27,11 +31,13 @@ repos:
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
+        exclude: ^tools/optimization/patches/.*\.patch$
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+        exclude: ^tools/optimization/patches/.*\.patch$
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v20.1.0
     hooks:

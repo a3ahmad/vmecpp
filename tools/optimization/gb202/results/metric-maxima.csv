@@ -1,0 +1,13 @@
+metric,numeric_observations,unchanged_nulls,max_absolute_drift,max_relative_drift,undefined_relative_observations,all_numeric_hex_exact
+aspect_ratio,12,0,0.0,0.0,0,True
+aspect_ratio_over_edge_rotational_transform,12,0,0.0,0.0,0,True
+average_triangularity,12,0,0.0,0.0,0,True
+axis_magnetic_mirror_ratio,12,0,0.0,0.0,0,True
+axis_rotational_transform_over_n_field_periods,12,0,0.0,0.0,0,True
+edge_magnetic_mirror_ratio,12,0,0.0,0.0,0,True
+edge_rotational_transform_over_n_field_periods,12,0,0.0,0.0,0,True
+flux_compression_in_regions_of_bad_curvature,12,0,0.0,0.0,0,True
+max_elongation,12,0,0.0,0.0,0,True
+minimum_normalized_magnetic_gradient_scale_length,12,0,0.0,0.0,0,True
+qi,6,6,0.0,0.0,0,True
+vacuum_well,12,0,0.0,0.0,0,True

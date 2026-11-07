@@ -1,0 +1,248 @@
+{
+  "scope": "Unselected experimental source/provenance only; not part of selected build",
+  "numeric_source_edits": 0,
+  "binary_files": 0,
+  "raw_benchmark_files": 0,
+  "recipes_site_bound_not_portable": true,
+  "experiments": {
+    "gb202-inverse-groups1": {
+      "files": {
+        "frozen/experiments/gb202-inverse-groups1/source/generated_fourier_kernel.cuh": {
+          "sha256": "86eb5906db664270f1de9b71458ec6cb9b7c2a94287d4c499fcb572ba8c38f57",
+          "original": "build/optimization/gb202-inverse-groups1/source/generated_fourier_kernel.cuh"
+        },
+        "frozen/experiments/gb202-inverse-groups1/source/gpu_fourier.cu": {
+          "sha256": "1ca6a756351336b92a029a7051b98759be29fac40b850c1db49ab6f7d118e564",
+          "original": "build/optimization/gb202-inverse-groups1/source/gpu_fourier.cu"
+        },
+        "frozen/experiments/gb202-inverse-groups1/source/gpu_fourier.h": {
+          "sha256": "192f060345891c10be36b5eb8e934eddbc9031bca70fb810656df5d20d9ec012",
+          "original": "build/optimization/gb202-inverse-groups1/source/gpu_fourier.h"
+        }
+      },
+      "original_receipt": "build/optimization/gb202-inverse-groups1/build1/receipt.json",
+      "actual_CPU_compile_link_commands": [
+        [
+          "/usr/local/cuda-12.9/bin/nvcc",
+          "-DVMECPP_INVERSE_SPLIT_OUTPUT_GROUPS=1",
+          "-DVMECPP_INVERSE_LOAD_HOIST=1",
+          "-DVMECPP_INVERSE_REGISTER_ACCUMULATORS=1",
+          "-std=c++20",
+          "-O3",
+          "--fmad=false",
+          "-Xcompiler=-fPIC",
+          "-gencode",
+          "arch=compute_120,code=sm_120",
+          "-DVMECPP_GPU_FLAT_GRID",
+          "-DVMECPP_GPU_BLOCK_SIZE=32",
+          "-DVMECPP_GPU_SEPARABLE",
+          "-DFourierToRealKernel=FourierToRealKernelSeparable",
+          "-I${ORIGINAL_REPO}/build/optimization/gb202-inverse-groups1/source",
+          "-c",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-groups1/source/gpu_fourier.cu",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-groups1/build1/fourier.o"
+        ],
+        [
+          "g++",
+          "-Wl,--no-undefined",
+          "-shared",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/resident.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-groups1/build1/fourier.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/forward.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/constraint.o",
+          "-L/usr/local/cuda-12.9/lib64",
+          "-lcudart",
+          "-Wl,-rpath,/usr/local/cuda-12.9/lib64",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-groups1/build1/resident.so"
+        ]
+      ],
+      "selected_for_operational_build": false
+    },
+    "gb202-inverse-shape1": {
+      "files": {
+        "frozen/experiments/gb202-inverse-shape1/source/generated_fourier_kernel.cuh": {
+          "sha256": "51ebc06193c498e25ea28edb08a42bafffccaeea31f4dc5372610a090be49221",
+          "original": "build/optimization/gb202-inverse-shape1/source/generated_fourier_kernel.cuh"
+        },
+        "frozen/experiments/gb202-inverse-shape1/source/gpu_fourier.cu": {
+          "sha256": "545d052cbc5cfefa07133d9e52ad076d3f15d125154a063eacd7cc7a02bbfaf1",
+          "original": "build/optimization/gb202-inverse-shape1/source/gpu_fourier.cu"
+        },
+        "frozen/experiments/gb202-inverse-shape1/source/gpu_fourier.h": {
+          "sha256": "192f060345891c10be36b5eb8e934eddbc9031bca70fb810656df5d20d9ec012",
+          "original": "build/optimization/gb202-inverse-shape1/source/gpu_fourier.h"
+        },
+        "frozen/experiments/gb202-inverse-shape1/prepare_build.py": {
+          "sha256": "10fe2f9e8703ce25287d478c2d5ce7f4bf933ee530bb2b7c4e67bc3c16890f6d",
+          "original": "build/optimization/gb202-inverse-shape1/prepare_build.py"
+        }
+      },
+      "original_receipt": "build/optimization/gb202-inverse-shape1/build1/receipt.json",
+      "actual_CPU_compile_link_commands": [
+        [
+          "/usr/local/cuda-12.9/bin/nvcc",
+          "-DVMECPP_INVERSE_ANGULAR_SHAPE=1",
+          "-DVMECPP_INVERSE_LOAD_HOIST=1",
+          "-DVMECPP_INVERSE_REGISTER_ACCUMULATORS=1",
+          "-std=c++20",
+          "-O3",
+          "--fmad=false",
+          "-Xcompiler=-fPIC",
+          "-gencode",
+          "arch=compute_120,code=sm_120",
+          "-DVMECPP_GPU_FLAT_GRID",
+          "-DVMECPP_GPU_BLOCK_SIZE=32",
+          "-DVMECPP_GPU_SEPARABLE",
+          "-DFourierToRealKernel=FourierToRealKernelSeparable",
+          "-I${ORIGINAL_REPO}/build/optimization/gb202-inverse-shape1/source",
+          "-c",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-shape1/source/gpu_fourier.cu",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-shape1/build1/fourier.o"
+        ],
+        [
+          "g++",
+          "-Wl,--no-undefined",
+          "-shared",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/resident.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-shape1/build1/fourier.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/forward.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/constraint.o",
+          "-L/usr/local/cuda-12.9/lib64",
+          "-lcudart",
+          "-Wl,-rpath,/usr/local/cuda-12.9/lib64",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-inverse-shape1/build1/resident.so"
+        ]
+      ],
+      "selected_for_operational_build": false
+    },
+    "gb202-forward-subgroups1": {
+      "files": {
+        "frozen/experiments/gb202-forward-subgroups1/source/gpu_forward.cu": {
+          "sha256": "572d5714a25905945b23ccb894e215d8293be68c20fe9427774aa32847cfc38f",
+          "original": "build/optimization/gb202-forward-subgroups1/source/gpu_forward.cu"
+        },
+        "frozen/experiments/gb202-forward-subgroups1/source/gpu_forward.h": {
+          "sha256": "1839119b9d67876a367a48dfc6291e5e95d4fc49f588769fe10e0e87afacae30",
+          "original": "build/optimization/gb202-forward-subgroups1/source/gpu_forward.h"
+        },
+        "frozen/experiments/gb202-forward-subgroups1/source/gpu_forward_groups_kernels.h": {
+          "sha256": "08834af76f4d3bcd2066b3daeb7fbe395b17cb3839d3db75b5fb84be2aede769",
+          "original": "build/optimization/gb202-forward-subgroups1/source/gpu_forward_groups_kernels.h"
+        },
+        "frozen/experiments/gb202-forward-subgroups1/source/subgroups_kernel.h": {
+          "sha256": "b921343136138a21b26fa9130bf63f21eabe3bd2812ccc0c66310f0a85eed1bc",
+          "original": "build/optimization/gb202-forward-subgroups1/source/subgroups_kernel.h"
+        },
+        "frozen/experiments/gb202-forward-subgroups1/build.py": {
+          "sha256": "bb98804423d5642032725a63ed9cec1c0d570777fe607af5bd91076aa0c0baf8",
+          "original": "build/optimization/gb202-forward-subgroups1/build.py"
+        },
+        "frozen/experiments/gb202-forward-subgroups1/build2.py": {
+          "sha256": "b29e58f44c7fb96d833d1b9daf96a9adf1f3849b1ac19bc1b67bd677eaa2dbdc",
+          "original": "build/optimization/gb202-forward-subgroups1/build2.py"
+        }
+      },
+      "original_receipt": "build/optimization/gb202-forward-subgroups1/build2/receipt.json",
+      "actual_CPU_compile_link_commands": [
+        [
+          "/usr/local/cuda-12.9/bin/nvcc",
+          "-std=c++20",
+          "-O3",
+          "--fmad=false",
+          "-DVMECPP_FORWARD_SPLIT_GROUPS",
+          "-DVMECPP_FORWARD_ELIDE_OUTPUT_CLEAR=1",
+          "-DVMECPP_FORWARD_RECURRENCE_SUBGROUPS=1",
+          "-Xcompiler=-fPIC",
+          "-Xptxas=-v",
+          "-gencode",
+          "arch=compute_120,code=sm_120",
+          "-I${ORIGINAL_REPO}/build/optimization/gb202-forward-subgroups1/source",
+          "-c",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-subgroups1/source/gpu_forward.cu",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-subgroups1/build2/on/forward.o"
+        ],
+        [
+          "g++",
+          "-Wl,--no-undefined",
+          "-shared",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/resident.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/fourier.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-subgroups1/build2/on/forward.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/constraint.o",
+          "-L/usr/local/cuda-12.9/lib64",
+          "-lcudart",
+          "-Wl,-rpath,/usr/local/cuda-12.9/lib64",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-subgroups1/build2/on/resident.so"
+        ]
+      ],
+      "selected_for_operational_build": false
+    },
+    "gb202-forward-cg1": {
+      "files": {
+        "frozen/experiments/gb202-forward-cg1/source/gpu_forward.cu": {
+          "sha256": "572d5714a25905945b23ccb894e215d8293be68c20fe9427774aa32847cfc38f",
+          "original": "build/optimization/gb202-forward-cg1/source/gpu_forward.cu"
+        },
+        "frozen/experiments/gb202-forward-cg1/source/gpu_forward.h": {
+          "sha256": "1839119b9d67876a367a48dfc6291e5e95d4fc49f588769fe10e0e87afacae30",
+          "original": "build/optimization/gb202-forward-cg1/source/gpu_forward.h"
+        },
+        "frozen/experiments/gb202-forward-cg1/source/gpu_forward_groups_kernels.h": {
+          "sha256": "08834af76f4d3bcd2066b3daeb7fbe395b17cb3839d3db75b5fb84be2aede769",
+          "original": "build/optimization/gb202-forward-cg1/source/gpu_forward_groups_kernels.h"
+        },
+        "frozen/experiments/gb202-forward-cg1/source/subgroups_kernel.h": {
+          "sha256": "192f77b1097934efa50d869c1dcd3c765a5b40bc8b6ae03e2739bb15f02b716c",
+          "original": "build/optimization/gb202-forward-cg1/source/subgroups_kernel.h"
+        },
+        "frozen/experiments/gb202-forward-cg1/build.py": {
+          "sha256": "49840153029619ff7e923ba0f50998ae68bc733c9dc44ae96b07f1926af5b80b",
+          "original": "build/optimization/gb202-forward-cg1/build.py"
+        }
+      },
+      "original_receipt": "build/optimization/gb202-forward-cg1/build1/receipt.json",
+      "actual_CPU_compile_link_commands": [
+        [
+          "/usr/local/cuda-12.9/bin/nvcc",
+          "-std=c++20",
+          "-O3",
+          "--fmad=false",
+          "-DVMECPP_FORWARD_SPLIT_GROUPS",
+          "-DVMECPP_FORWARD_ELIDE_OUTPUT_CLEAR=1",
+          "-DVMECPP_FORWARD_RECURRENCE_SUBGROUPS=1",
+          "-DVMECPP_FORWARD_SUBGROUP_LOAD_CG=1",
+          "-Xcompiler=-fPIC",
+          "-Xptxas=-v",
+          "-gencode",
+          "arch=compute_120,code=sm_120",
+          "-I${ORIGINAL_REPO}/build/optimization/gb202-forward-cg1/source",
+          "-c",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-cg1/source/gpu_forward.cu",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-cg1/build1/on/forward.o"
+        ],
+        [
+          "g++",
+          "-Wl,--no-undefined",
+          "-shared",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/resident.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/fourier.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-cg1/build1/on/forward.o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/constraint.o",
+          "-L/usr/local/cuda-12.9/lib64",
+          "-lcudart",
+          "-Wl,-rpath,/usr/local/cuda-12.9/lib64",
+          "-o",
+          "${ORIGINAL_REPO}/build/optimization/gb202-forward-cg1/build1/on/resident.so"
+        ]
+      ],
+      "selected_for_operational_build": false
+    }
+  }
+}

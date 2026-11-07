@@ -1,0 +1,7 @@
+# Keep optimization source and provenance stable across Windows/WSL checkouts.
+/tools/** text eol=lf
+/tests/optimization/** text eol=lf
+# Preserve the measured archive byte-for-byte, including any original newlines.
+/tools/optimization/gb202/frozen/** -text -whitespace
+# Unified patches contain meaningful whitespace and trailing context lines.
+/tools/optimization/patches/*.patch -whitespace

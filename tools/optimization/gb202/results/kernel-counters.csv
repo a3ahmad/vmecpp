@@ -1,0 +1,5 @@
+variant,grid_blocks,block_threads,duration_us,SM_frequency_GHz,elapsed_cycles,SM_compute_percent,achieved_occupancy_percent,DRAM_percent,L2_hit_percent,registers_per_thread
+retained_inverse,1040,32,20.70,2.92,60560,59.38,11.17,1.26,99.89,126
+inverse_output_group_experiment,2080,32,25.18,2.39,60355,60.48,21.81,0.00,99.91,95
+retained_forward_partials,558,128,25.28,2.38,60476,57.59,24.49,0.13,100.04,64
+forward_subgroup_experiment,1116,128,19.42,2.92,56833,61.09,41.71,0.41,102.88,48

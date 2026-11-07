@@ -1,0 +1,1146 @@
+{
+  "scope": "Exact source snapshot; CPU rebuild recipe not hardware-qualified at new paths",
+  "target": "SM120 only",
+  "numerical_source_edits": 0,
+  "binary_files": 0,
+  "fixtures": 0,
+  "ancestry": {
+    "resident": "60d24820102c953dedc85a8487ec3023fdf7de921ff7e82ff25294718309e078",
+    "backend": "2eb80b39e9051961721f8cf9b28c520f970a599d19a8197b8707c86cb52dcf2d",
+    "rhs": "5f49a56ebd0d5eb6c52cd015f2fd05f3b5261e83bdc9bdd78ebdcc84e5cdc474"
+  },
+  "compiler": "CUDA12.9 nvcc, C++20 -O3 --fmad=false; original per-TU macros",
+  "files": {
+    "frozen/a2237c80a3a0-approximation_kernels.inc": {
+      "sha256": "a2237c80a3a0f844f137d65bcfc0a0719e060bade6f0bdb9d3ecf94f113d6bdb",
+      "originals": [
+        "build/optimization/residual-seed-guard1/source/approximation_kernels.inc"
+      ]
+    },
+    "frozen/16310d02f1b9-coordinate_map.h": {
+      "sha256": "16310d02f1b92458e096cf2931cd9771a220066b7de8cda14c94d485a6b023e3",
+      "originals": [
+        "build/optimization/energy-coordinate-map1/source3/coordinate_map.h",
+        "build/optimization/residual-seed-guard1/source/coordinate_map.h"
+      ]
+    },
+    "frozen/68df294589d6-energy_final_map.h": {
+      "sha256": "68df294589d6939c11133c0dc2c2bbf0b9c700bfeb2545f2860033c4d9dba44f",
+      "originals": [
+        "build/optimization/residual-seed-guard1/source/energy_final_map.h"
+      ]
+    },
+    "frozen/2d399832145f-generated_fourier_kernel.cuh": {
+      "sha256": "2d399832145f5827a0f4505b8843335890cc1261165b2980bd80425d881c0ddd",
+      "originals": [
+        "build/optimization/inverse-load-hoist1/source/generated_fourier_kernel.cuh"
+      ]
+    },
+    "frozen/23e5899f7586-geometry_point.h": {
+      "sha256": "23e5899f7586b22a7600d37feac1c5e238dec6ee2cdafa6c00dd79272a197e63",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/geometry_point.h"
+      ]
+    },
+    "frozen/626bfab40195-gpu_constraint.cu": {
+      "sha256": "626bfab401952c168fb90efe7a0f898430098291770fc38d387079d52b76dba7",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/gpu_constraint.cu"
+      ]
+    },
+    "frozen/b33344f5601a-gpu_cooperative_energies.h": {
+      "sha256": "b33344f5601a42b8e4f4889bbc0824ea72d9856f212373feeb8a4afcb6bcd1a8",
+      "originals": [
+        "tools/optimization/gpu_cooperative_energies.h"
+      ]
+    },
+    "frozen/462ef93a8370-gpu_cooperative_residual.h": {
+      "sha256": "462ef93a83701f303a6b3071685adcccc328e911af55e58823c436190efe6352",
+      "originals": [
+        "tools/optimization/gpu_cooperative_residual.h"
+      ]
+    },
+    "frozen/512c42cb2be6-gpu_diagnostics.cu": {
+      "sha256": "512c42cb2be62d319a989076f534d84d503bd301b69ad880ed1f43a766a31231",
+      "originals": [
+        "build/optimization/resident-iteration-factor1/source/gpu_diagnostics.cu"
+      ]
+    },
+    "frozen/0ce638311544-gpu_diagnostics.h": {
+      "sha256": "0ce6383115445eb783403e5f7d33abdaf225acc91ff5a7c568b5d9bc9226413c",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_diagnostics.h",
+        "tools/optimization/gpu_diagnostics.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_diagnostics.h",
+        "build/optimization/resident-iteration-factor1/source/gpu_diagnostics.h"
+      ]
+    },
+    "frozen/25ff0a216e24-gpu_forward.cu": {
+      "sha256": "25ff0a216e24defb604c1db8ffc1251f43605b786080af2ab08738f37333192e",
+      "originals": [
+        "build/optimization/forward-clear-elide1/source/gpu_forward.cu"
+      ]
+    },
+    "frozen/1839119b9d67-gpu_forward.h": {
+      "sha256": "1839119b9d67876a367a48dfc6291e5e95d4fc49f588769fe10e0e87afacae30",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/gpu_forward.h",
+        "build/optimization/forward-clear-elide1/source/gpu_forward.h",
+        "tools/optimization/gpu_forward.h",
+        "build/optimization/residual-coordinate-solver1/source/gpu_forward.h"
+      ]
+    },
+    "frozen/6bb3a911fcbf-gpu_forward_groups_kernels.h": {
+      "sha256": "6bb3a911fcbf6d7c205640d4ece40c5b982c32711093a6c979d34de233f5f662",
+      "originals": [
+        "build/optimization/forward-clear-elide1/source/gpu_forward_groups_kernels.h"
+      ]
+    },
+    "frozen/d5f9016c843e-gpu_fourier.cu": {
+      "sha256": "d5f9016c843ec4993a7d927d8587cf13fa65c586162bc32336f842bab1ceab7e",
+      "originals": [
+        "build/optimization/inverse-load-hoist1/source/gpu_fourier.cu"
+      ]
+    },
+    "frozen/192f06034589-gpu_fourier.h": {
+      "sha256": "192f060345891c10be36b5eb8e934eddbc9031bca70fb810656df5d20d9ec012",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/gpu_fourier.h",
+        "build/optimization/inverse-load-hoist1/source/gpu_fourier.h",
+        "build/optimization/residual-coordinate-solver1/source/gpu_fourier.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_fourier.h"
+      ]
+    },
+    "frozen/68da4fd3f448-gpu_iteration.cu": {
+      "sha256": "68da4fd3f44881192b352335d4119ea4e07e9a95ab9a1664aeeb1e62cf5e82e0",
+      "originals": [
+        "build/optimization/rhs-memory-policy/candidate-source/gpu_iteration.cu"
+      ]
+    },
+    "frozen/d2942f96bc28-gpu_iteration.cu": {
+      "sha256": "d2942f96bc28f495ae5112e3a1c97466c87c511d17651e360bba82282f3ba081",
+      "originals": [
+        "build/optimization/resident-iteration-factor1/source/gpu_iteration.cu"
+      ]
+    },
+    "frozen/db0fc7b16586-gpu_iteration.h": {
+      "sha256": "db0fc7b165863373f96ca0d14f41bd409b2f5e7cbfdc69c73038b31154c17cca",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_iteration.h",
+        "tools/optimization/gpu_iteration.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_iteration.h",
+        "build/optimization/residual-seed-guard1/source/gpu_iteration.h",
+        "build/optimization/resident-iteration-factor1/source/gpu_iteration.h",
+        "build/optimization/rhs-memory-policy/candidate-source/gpu_iteration.h"
+      ]
+    },
+    "frozen/194808e42bfe-gpu_lattice_energies.cu": {
+      "sha256": "194808e42bfe5dc746133f86b0a14dce96019e728342cff7b64b2ca967926c6c",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_energies.cu"
+      ]
+    },
+    "frozen/ba6dab67f1f5-gpu_lattice_energies.h": {
+      "sha256": "ba6dab67f1f5151a7fd65690dc96bbb37f41718270e3c974ef2d815138d6de4c",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_lattice_energies.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_energies.h"
+      ]
+    },
+    "frozen/da1e742b6722-gpu_lattice_prefix.cu": {
+      "sha256": "da1e742b6722ced62095c630823f96302f56f8ac311a79daa76beb3f456cf1db",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_prefix.cu"
+      ]
+    },
+    "frozen/ec013dcedbfe-gpu_lattice_prefix.h": {
+      "sha256": "ec013dcedbfee9d4c2b9dd4a0dd158a070b77a7f1dcf7bad0fddf1e49ed6ab61",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_prefix.h"
+      ]
+    },
+    "frozen/dbcdbdf68508-gpu_lattice_residual.cu": {
+      "sha256": "dbcdbdf68508fc3f20d8d661a9f93787bba915c917b9678d9e5e574de1df08c7",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_residual.cu"
+      ]
+    },
+    "frozen/e044963b7cbd-gpu_lattice_residual.h": {
+      "sha256": "e044963b7cbdbfe40464065b07ca229977b80f170cc4fadee0752161beb28c69",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_lattice_residual.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_residual.h"
+      ]
+    },
+    "frozen/0edcdc39968d-gpu_optimistic_diagnostics.cu": {
+      "sha256": "0edcdc39968de366aebf08eabe936da76d1ed6f34b8a273f376b2d6a9984634d",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_optimistic_diagnostics.cu"
+      ]
+    },
+    "frozen/7b80800d6fb2-gpu_optimistic_diagnostics.h": {
+      "sha256": "7b80800d6fb2f3638903656a0cfc4386c15086c743abb8501ce86602daf4cf1b",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_optimistic_diagnostics.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_optimistic_diagnostics.h"
+      ]
+    },
+    "frozen/40912d987e8d-gpu_optimistic_residual.cu": {
+      "sha256": "40912d987e8d04e53b070e15db8caf894d72281b995f2c58ec54da811d95f4b9",
+      "originals": [
+        "build/optimization/resident-iteration-factor1/source/gpu_optimistic_residual.cu"
+      ]
+    },
+    "frozen/7cfc5f2a0b6f-gpu_pipeline.h": {
+      "sha256": "7cfc5f2a0b6f6516986963c56c60598fa5c02f8bf93b3dcba839859357a1456b",
+      "originals": [
+        "tools/optimization/gpu_pipeline.h"
+      ]
+    },
+    "frozen/114aa2ca22d9-gpu_preconditioner.cu": {
+      "sha256": "114aa2ca22d95b3983684bed1b4a7c406adbd72c26c8fe850549f193c488b8c4",
+      "originals": [
+        "build/optimization/resident-iteration-factor1/source/gpu_preconditioner.cu"
+      ]
+    },
+    "frozen/decbe392cc5a-gpu_preconditioner.h": {
+      "sha256": "decbe392cc5a5ee69e30473bb0d8867743a6ade7e94b967964d7f0ad15cda8c4",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_preconditioner.h",
+        "build/optimization/resident-iteration-factor1/source/gpu_preconditioner.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_preconditioner.h"
+      ]
+    },
+    "frozen/d4834ab5c1da-gpu_ragged_energy_prefix.cu": {
+      "sha256": "d4834ab5c1dae7a89e3720b89f43b709e8cf0adc8cf0ab14fb27820ff6cb37c5",
+      "originals": [
+        "build/optimization/energy-coordinate-map1/source3/gpu_ragged_energy_prefix.cu"
+      ]
+    },
+    "frozen/a12179fd8d8e-gpu_ragged_energy_prefix.h": {
+      "sha256": "a12179fd8d8e000c50cd23ae75197fe31ea16fb5627f588f0796d1ffebf241c6",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_ragged_energy_prefix.h",
+        "build/optimization/energy-coordinate-map1/source3/gpu_ragged_energy_prefix.h"
+      ]
+    },
+    "frozen/200350d446d9-gpu_resident.cu": {
+      "sha256": "200350d446d934213d3b9623325cd201fd5a75d99aaa45a43633040db1ae53f0",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/gpu_resident.cu"
+      ]
+    },
+    "frozen/bc312e896f7e-gpu_resident.h": {
+      "sha256": "bc312e896f7e1f832b2bb1c86d05fbf1e2b917be3c47b1b70c839cfd5c85b947",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/gpu_resident.h",
+        "build/optimization/residual-coordinate-solver1/source/gpu_resident.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_resident.h"
+      ]
+    },
+    "frozen/feb4d648e0c0-gpu_residual_capped_scan.cu": {
+      "sha256": "feb4d648e0c057f73e3ae8f790fabc49f6d1084b4a358a414cf2e33c7f056270",
+      "originals": [
+        "build/optimization/residual-seed-guard1/source/gpu_residual_capped_scan.cu"
+      ]
+    },
+    "frozen/cb8368b98828-gpu_residual_capped_scan.h": {
+      "sha256": "cb8368b98828eb3085ef11027fb8f8045e308338b7df18a29e5363f6d3021aec",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_residual_capped_scan.h",
+        "build/optimization/residual-seed-guard1/source/gpu_residual_capped_scan.h"
+      ]
+    },
+    "frozen/06da90405d2b-gpu_solver.cu": {
+      "sha256": "06da90405d2b7a362b4907d9b340bcd9a5922f6fadf73ff7f1fba83752ba438f",
+      "originals": [
+        "build/optimization/solver-packed-profile-backup1/source/gpu_solver.cu"
+      ]
+    },
+    "frozen/51d49157000e-gpu_solver.h": {
+      "sha256": "51d49157000e35a7368e80e4524c18ab428687fa9da259d9f6436f4ca585b340",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_solver.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_solver.h"
+      ]
+    },
+    "frozen/a26fac40c882-gpu_solver_buffer_pool.h": {
+      "sha256": "a26fac40c8828c385fa8c44605ba14f2d9a8cd9df47a8d5cdf29f797adeb8b2b",
+      "originals": [
+        "tools/optimization/gpu_solver_buffer_pool.h"
+      ]
+    },
+    "frozen/2b7b3a3627c3-gpu_solver_coordinate_residual.h": {
+      "sha256": "2b7b3a3627c36bc662934e4bba3472527af5abeb82b555bedd3b301993faccd1",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_solver_coordinate_residual.h"
+      ]
+    },
+    "frozen/716666a70515-gpu_thomas_prefix.cu": {
+      "sha256": "716666a70515658c56bcc64eb69f9c023314adb4f76c38409a97f7e6f5ce2be6",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_thomas_prefix.cu"
+      ]
+    },
+    "frozen/b2b2640ae438-gpu_thomas_prefix.h": {
+      "sha256": "b2b2640ae43841d61944bb7c6a3fa495734f7827292a5084bd4715662852cf5f",
+      "originals": [
+        "build/optimization/residual-coordinate-solver1/source/gpu_thomas_prefix.h",
+        "build/optimization/resident-solver-energy-ragged-clean1/source/gpu_thomas_prefix.h"
+      ]
+    },
+    "frozen/fcaf9c78f2fa-mhd_point.h": {
+      "sha256": "fcaf9c78f2fa0af5fc761034c1901e62941fc4c847c1fb81b733a719a65c7a61",
+      "originals": [
+        "build/optimization/profile-tiles-full1/source/mhd_point.h"
+      ]
+    },
+    "frozen/16442dc8ba61-radial_executor.h": {
+      "sha256": "16442dc8ba614d481468a3f3c824553d22adf95cb559f455e454b5f21ee49ac8",
+      "originals": [
+        "tools/optimization/radial_executor.h"
+      ]
+    },
+    "frozen/e150b7bb1e22-ragged_energy_methods.inc": {
+      "sha256": "e150b7bb1e226d8ee8e117485d7625d03c172b733b320416f28977f987aadf79",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/ragged_energy_methods.inc"
+      ]
+    },
+    "frozen/cdb57b2e9a37-ragged_shape.h": {
+      "sha256": "cdb57b2e9a377ed9c25bfa5719a5b9cdf8acfc39f3a80362d1b8c1376f7af4ed",
+      "originals": [
+        "build/optimization/energy-coordinate-map1/source3/ragged_shape.h"
+      ]
+    },
+    "frozen/0f4b50a1d8c3-resident_solver_shim.cc": {
+      "sha256": "0f4b50a1d8c3c695fe5e8c09ee1c3393e572d402dc770d0d35a68bd641470921",
+      "originals": [
+        "build/optimization/resident-solver-energy-ragged-clean1/source/resident_solver_shim.cc"
+      ]
+    }
+  },
+  "translation_units": [
+    {
+      "name": "resident",
+      "cohort": "resident",
+      "source": "frozen/200350d446d9-gpu_resident.cu",
+      "files": {
+        "mhd_point.h": "frozen/fcaf9c78f2fa-mhd_point.h",
+        "gpu_fourier.h": "frozen/192f06034589-gpu_fourier.h",
+        "geometry_point.h": "frozen/23e5899f7586-geometry_point.h",
+        "gpu_forward.h": "frozen/1839119b9d67-gpu_forward.h",
+        "gpu_resident.h": "frozen/bc312e896f7e-gpu_resident.h",
+        "gpu_resident.cu": "frozen/200350d446d9-gpu_resident.cu"
+      },
+      "flags": [
+        "-DVMECPP_PROFILE_TILE_ROWS=1",
+        "-DVMECPP_PROFILE_SPLIT_CHAINS",
+        "-DVMECPP_GPU_RESIDENT_CHAIN",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-DVMECPP_PROFILE_TILE_ROWS=1",
+        "-DVMECPP_PROFILE_SPLIT_CHAINS",
+        "-DVMECPP_GPU_RESIDENT_CHAIN",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-I${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/source",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/source/gpu_resident.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/resident.o"
+      ]
+    },
+    {
+      "name": "constraint",
+      "cohort": "resident",
+      "source": "frozen/626bfab40195-gpu_constraint.cu",
+      "files": {
+        "gpu_constraint.cu": "frozen/626bfab40195-gpu_constraint.cu",
+        "gpu_resident.h": "frozen/bc312e896f7e-gpu_resident.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-I${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/source",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/source/gpu_constraint.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/profile-tiles-full1/constraint.o"
+      ]
+    },
+    {
+      "name": "fourier",
+      "cohort": "inverse",
+      "source": "frozen/d5f9016c843e-gpu_fourier.cu",
+      "files": {
+        "gpu_fourier.cu": "frozen/d5f9016c843e-gpu_fourier.cu",
+        "gpu_fourier.h": "frozen/192f06034589-gpu_fourier.h",
+        "generated_fourier_kernel.cuh": "frozen/2d399832145f-generated_fourier_kernel.cuh"
+      },
+      "flags": [
+        "-DVMECPP_INVERSE_LOAD_HOIST=1",
+        "-DVMECPP_INVERSE_REGISTER_ACCUMULATORS=1",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-DVMECPP_GPU_FLAT_GRID",
+        "-DVMECPP_GPU_BLOCK_SIZE=32",
+        "-DVMECPP_GPU_SEPARABLE",
+        "-DFourierToRealKernel=FourierToRealKernelSeparable",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-DVMECPP_INVERSE_LOAD_HOIST=1",
+        "-DVMECPP_INVERSE_REGISTER_ACCUMULATORS=1",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-DVMECPP_GPU_FLAT_GRID",
+        "-DVMECPP_GPU_BLOCK_SIZE=32",
+        "-DVMECPP_GPU_SEPARABLE",
+        "-DFourierToRealKernel=FourierToRealKernelSeparable",
+        "-I${ORIGINAL_REPO}/build/optimization/inverse-load-hoist1/source",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/inverse-load-hoist1/source/gpu_fourier.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/inverse-load-hoist1/build1/on/fourier.o"
+      ]
+    },
+    {
+      "name": "forward",
+      "cohort": "forward",
+      "source": "frozen/25ff0a216e24-gpu_forward.cu",
+      "files": {
+        "gpu_forward.h": "frozen/1839119b9d67-gpu_forward.h",
+        "gpu_pipeline.h": "frozen/7cfc5f2a0b6f-gpu_pipeline.h",
+        "gpu_forward_groups_kernels.h": "frozen/6bb3a911fcbf-gpu_forward_groups_kernels.h",
+        "radial_executor.h": "frozen/16442dc8ba61-radial_executor.h",
+        "gpu_forward.cu": "frozen/25ff0a216e24-gpu_forward.cu"
+      },
+      "flags": [
+        "-DVMECPP_FORWARD_ELIDE_OUTPUT_CLEAR=1",
+        "-DVMECPP_FORWARD_SPLIT_GROUPS",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-Xptxas=-v",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-DVMECPP_FORWARD_ELIDE_OUTPUT_CLEAR=1",
+        "-DVMECPP_FORWARD_SPLIT_GROUPS",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-Xcompiler=-fPIC",
+        "-Xptxas=-v",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-I${ORIGINAL_REPO}/build/optimization/forward-clear-elide1/source",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/forward-clear-elide1/source/gpu_forward.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/forward-clear-elide1/build1/on/forward.o"
+      ]
+    },
+    {
+      "name": "gpu_solver",
+      "cohort": "solver",
+      "source": "frozen/06da90405d2b-gpu_solver.cu",
+      "files": {
+        "gpu_resident.h": "frozen/bc312e896f7e-gpu_resident.h",
+        "gpu_lattice_residual.h": "frozen/e044963b7cbd-gpu_lattice_residual.h",
+        "gpu_cooperative_energies.h": "frozen/b33344f5601a-gpu_cooperative_energies.h",
+        "gpu_preconditioner.h": "frozen/decbe392cc5a-gpu_preconditioner.h",
+        "gpu_residual_capped_scan.h": "frozen/cb8368b98828-gpu_residual_capped_scan.h",
+        "gpu_cooperative_residual.h": "frozen/462ef93a8370-gpu_cooperative_residual.h",
+        "gpu_lattice_energies.h": "frozen/ba6dab67f1f5-gpu_lattice_energies.h",
+        "gpu_diagnostics.h": "frozen/0ce638311544-gpu_diagnostics.h",
+        "gpu_optimistic_diagnostics.h": "frozen/7b80800d6fb2-gpu_optimistic_diagnostics.h",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h",
+        "gpu_solver.cu": "frozen/06da90405d2b-gpu_solver.cu",
+        "gpu_fourier.h": "frozen/192f06034589-gpu_fourier.h",
+        "gpu_solver.h": "frozen/51d49157000e-gpu_solver.h",
+        "gpu_solver_coordinate_residual.h": "frozen/2b7b3a3627c3-gpu_solver_coordinate_residual.h",
+        "gpu_forward.h": "frozen/1839119b9d67-gpu_forward.h",
+        "gpu_thomas_prefix.h": "frozen/b2b2640ae438-gpu_thomas_prefix.h",
+        "gpu_solver_buffer_pool.h": "frozen/a26fac40c882-gpu_solver_buffer_pool.h"
+      },
+      "flags": [
+        "-DVMECPP_PACK_PROFILE_BACKUP=1",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-DVMECPP_SOLVER_COORDINATE_RESIDUAL=1",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-DVMECPP_PACK_PROFILE_BACKUP=1",
+        "-I${ORIGINAL_REPO}/build/optimization/residual-coordinate-solver1/source",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-DVMECPP_SOLVER_COORDINATE_RESIDUAL=1",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/solver-packed-profile-backup1/source/gpu_solver.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/gpu_solver.o"
+      ]
+    },
+    {
+      "name": "gpu_optimistic_diagnostics",
+      "cohort": "clean",
+      "source": "frozen/0edcdc39968d-gpu_optimistic_diagnostics.cu",
+      "files": {
+        "gpu_optimistic_diagnostics.h": "frozen/7b80800d6fb2-gpu_optimistic_diagnostics.h",
+        "gpu_optimistic_diagnostics.cu": "frozen/0edcdc39968d-gpu_optimistic_diagnostics.cu",
+        "gpu_diagnostics.h": "frozen/0ce638311544-gpu_diagnostics.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/resident-solver-energy-ragged-clean1/source/gpu_optimistic_diagnostics.cu",
+        "-o",
+        "gpu_optimistic_diagnostics.o"
+      ]
+    },
+    {
+      "name": "gpu_thomas_prefix",
+      "cohort": "clean",
+      "source": "frozen/716666a70515-gpu_thomas_prefix.cu",
+      "files": {
+        "gpu_thomas_prefix.cu": "frozen/716666a70515-gpu_thomas_prefix.cu",
+        "gpu_thomas_prefix.h": "frozen/b2b2640ae438-gpu_thomas_prefix.h",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/resident-solver-energy-ragged-clean1/source/gpu_thomas_prefix.cu",
+        "-o",
+        "gpu_thomas_prefix.o"
+      ]
+    },
+    {
+      "name": "gpu_lattice_prefix",
+      "cohort": "clean",
+      "source": "frozen/da1e742b6722-gpu_lattice_prefix.cu",
+      "files": {
+        "gpu_lattice_prefix.cu": "frozen/da1e742b6722-gpu_lattice_prefix.cu",
+        "gpu_lattice_prefix.h": "frozen/ec013dcedbfe-gpu_lattice_prefix.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_prefix.cu",
+        "-o",
+        "gpu_lattice_prefix.o"
+      ]
+    },
+    {
+      "name": "gpu_lattice_residual",
+      "cohort": "clean",
+      "source": "frozen/dbcdbdf68508-gpu_lattice_residual.cu",
+      "files": {
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h",
+        "gpu_lattice_residual.cu": "frozen/dbcdbdf68508-gpu_lattice_residual.cu",
+        "gpu_lattice_residual.h": "frozen/e044963b7cbd-gpu_lattice_residual.h",
+        "gpu_lattice_prefix.h": "frozen/ec013dcedbfe-gpu_lattice_prefix.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_residual.cu",
+        "-o",
+        "gpu_lattice_residual.o"
+      ]
+    },
+    {
+      "name": "gpu_lattice_energies",
+      "cohort": "clean",
+      "source": "frozen/194808e42bfe-gpu_lattice_energies.cu",
+      "files": {
+        "gpu_lattice_energies.h": "frozen/ba6dab67f1f5-gpu_lattice_energies.h",
+        "gpu_lattice_prefix.h": "frozen/ec013dcedbfe-gpu_lattice_prefix.h",
+        "ragged_energy_methods.inc": "frozen/e150b7bb1e22-ragged_energy_methods.inc",
+        "gpu_ragged_energy_prefix.h": "frozen/a12179fd8d8e-gpu_ragged_energy_prefix.h",
+        "gpu_lattice_energies.cu": "frozen/194808e42bfe-gpu_lattice_energies.cu",
+        "gpu_diagnostics.h": "frozen/0ce638311544-gpu_diagnostics.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-DVMECPP_LATTICE_ENERGY_RAGGED",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-DVMECPP_LATTICE_ENERGY_RAGGED",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/resident-solver-energy-ragged-clean1/source/gpu_lattice_energies.cu",
+        "-o",
+        "gpu_lattice_energies.o"
+      ]
+    },
+    {
+      "name": "ragged_coordinate",
+      "cohort": "energy",
+      "source": "frozen/d4834ab5c1da-gpu_ragged_energy_prefix.cu",
+      "files": {
+        "gpu_ragged_energy_prefix.h": "frozen/a12179fd8d8e-gpu_ragged_energy_prefix.h",
+        "ragged_shape.h": "frozen/cdb57b2e9a37-ragged_shape.h",
+        "coordinate_map.h": "frozen/16310d02f1b9-coordinate_map.h",
+        "gpu_ragged_energy_prefix.cu": "frozen/d4834ab5c1da-gpu_ragged_energy_prefix.cu"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_LATTICE_ENERGY_RAGGED",
+        "-DVMECPP_ENERGY_COORDINATE_MAP=1",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_LATTICE_ENERGY_RAGGED",
+        "-DVMECPP_ENERGY_COORDINATE_MAP=1",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/energy-coordinate-map1/source3/gpu_ragged_energy_prefix.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/energy-coordinate-map1/build2/ragged-coordinate.o"
+      ]
+    },
+    {
+      "name": "coordinate",
+      "cohort": "residual",
+      "source": "frozen/feb4d648e0c0-gpu_residual_capped_scan.cu",
+      "files": {
+        "approximation_kernels.inc": "frozen/a2237c80a3a0-approximation_kernels.inc",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h",
+        "gpu_residual_capped_scan.cu": "frozen/feb4d648e0c0-gpu_residual_capped_scan.cu",
+        "coordinate_map.h": "frozen/16310d02f1b9-coordinate_map.h",
+        "gpu_residual_capped_scan.h": "frozen/cb8368b98828-gpu_residual_capped_scan.h",
+        "energy_final_map.h": "frozen/68df294589d6-energy_final_map.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_RESIDUAL_CAPPED_SCAN=1",
+        "-DVMECPP_RESIDUAL_COORDINATE_MAP=1",
+        "-DVMECPP_ENERGY_WARP_FOLD=1",
+        "-DVMECPP_RESIDUAL_COORDINATE_TWO_PASS=1",
+        "-DVMECPP_RESIDUAL_APPROX_FUSION=1",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_RESIDUAL_SEED_RAW_GUARD=1",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_CACHE_TRIDIAGONAL_FACTORS",
+        "-DVMECPP_THOMAS_PREFIX",
+        "-DVMECPP_THOMAS_FORWARD_PREFETCH=8",
+        "-DVMECPP_THOMAS_BACKWARD_PREFETCH=8",
+        "-DVMECPP_LATTICE_RESIDUALS",
+        "-DVMECPP_LATTICE_WARP_SEEDS",
+        "-DVMECPP_COORDINATE_CAPTURES",
+        "-DVMECPP_LATTICE_ENERGIES",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_RESIDUAL_CAPPED_SCAN=1",
+        "-DVMECPP_RESIDUAL_COORDINATE_MAP=1",
+        "-DVMECPP_ENERGY_WARP_FOLD=1",
+        "-DVMECPP_RESIDUAL_COORDINATE_TWO_PASS=1",
+        "-DVMECPP_RESIDUAL_APPROX_FUSION=1",
+        "--ftz=false",
+        "--prec-div=true",
+        "--prec-sqrt=true",
+        "-DVMECPP_RESIDUAL_SEED_RAW_GUARD=1",
+        "-c",
+        "${ORIGINAL_REPO}/build/optimization/residual-seed-guard1/source/gpu_residual_capped_scan.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/gb202-packed-sm1201/build2/objects/coordinate.o"
+      ]
+    },
+    {
+      "name": "iteration_gpu_iteration",
+      "cohort": "iteration",
+      "source": "frozen/d2942f96bc28-gpu_iteration.cu",
+      "files": {
+        "gpu_iteration.cu": "frozen/d2942f96bc28-gpu_iteration.cu",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-shared",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_iteration.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_diagnostics.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_optimistic_residual.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_preconditioner.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/iteration.so"
+      ]
+    },
+    {
+      "name": "iteration_gpu_diagnostics",
+      "cohort": "iteration",
+      "source": "frozen/512c42cb2be6-gpu_diagnostics.cu",
+      "files": {
+        "gpu_diagnostics.cu": "frozen/512c42cb2be6-gpu_diagnostics.cu",
+        "gpu_diagnostics.h": "frozen/0ce638311544-gpu_diagnostics.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-shared",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_iteration.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_diagnostics.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_optimistic_residual.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_preconditioner.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/iteration.so"
+      ]
+    },
+    {
+      "name": "iteration_gpu_optimistic_residual",
+      "cohort": "iteration",
+      "source": "frozen/40912d987e8d-gpu_optimistic_residual.cu",
+      "files": {
+        "gpu_optimistic_residual.cu": "frozen/40912d987e8d-gpu_optimistic_residual.cu",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-shared",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_iteration.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_diagnostics.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_optimistic_residual.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_preconditioner.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/iteration.so"
+      ]
+    },
+    {
+      "name": "iteration_gpu_preconditioner",
+      "cohort": "iteration",
+      "source": "frozen/114aa2ca22d9-gpu_preconditioner.cu",
+      "files": {
+        "gpu_preconditioner.h": "frozen/decbe392cc5a-gpu_preconditioner.h",
+        "gpu_preconditioner.cu": "frozen/114aa2ca22d9-gpu_preconditioner.cu"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-shared",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_iteration.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_diagnostics.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_optimistic_residual.cu",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/source/gpu_preconditioner.cu",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/iteration.so"
+      ]
+    },
+    {
+      "name": "rhs",
+      "cohort": "rhs",
+      "source": "frozen/68da4fd3f448-gpu_iteration.cu",
+      "files": {
+        "gpu_iteration.cu": "frozen/68da4fd3f448-gpu_iteration.cu",
+        "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h"
+      },
+      "flags": [
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-DVMECPP_RHS_MODE_TILE=32",
+        "-DVMECPP_RHS_MEMORY_POLICY=3",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_120,code=sm_120"
+      ],
+      "original_command": [
+        "/usr/local/cuda-12.9/bin/nvcc",
+        "-std=c++20",
+        "-O3",
+        "--fmad=false",
+        "-DVMECPP_RESIDUAL_TILE=128",
+        "-DVMECPP_RHS_MODE_TILE=32",
+        "-DVMECPP_RHS_MEMORY_POLICY=3",
+        "-Xcompiler=-fPIC",
+        "-gencode",
+        "arch=compute_80,code=sm_80",
+        "-gencode",
+        "arch=compute_120,code=sm_120",
+        "-shared",
+        "${ORIGINAL_REPO}/build/optimization/rhs-memory-policy/candidate-source/gpu_iteration.cu",
+        "-Xlinker=-Bsymbolic",
+        "${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1/iteration.so",
+        "-Xlinker=-rpath",
+        "-Xlinker=${ORIGINAL_REPO}/build/optimization/resident-iteration-factor1",
+        "-o",
+        "${ORIGINAL_REPO}/build/optimization/rhs-memory-policy/policy3/rhs.so"
+      ]
+    }
+  ],
+  "runtime_shim": {
+    "source": "frozen/0f4b50a1d8c3-resident_solver_shim.cc",
+    "files": {
+      "gpu_preconditioner.h": "frozen/decbe392cc5a-gpu_preconditioner.h",
+      "gpu_resident.h": "frozen/bc312e896f7e-gpu_resident.h",
+      "gpu_fourier.h": "frozen/192f06034589-gpu_fourier.h",
+      "gpu_iteration.h": "frozen/db0fc7b16586-gpu_iteration.h",
+      "resident_solver_shim.cc": "frozen/0f4b50a1d8c3-resident_solver_shim.cc",
+      "gpu_solver.h": "frozen/51d49157000e-gpu_solver.h"
+    },
+    "requirements": "Original VMEC++0.4.11 headers, extension ABI, Eigen/Abseil dependencies; not built by this recipe"
+  },
+  "external_quoted_includes": [
+    "mhd_point.h",
+    "vmecpp/vmec/ideal_mhd_model/ideal_mhd_model.h",
+    "vmecpp/vmec/vmec/vmec.h"
+  ]
+}

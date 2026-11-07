@@ -1,0 +1,14 @@
+{
+    "scope":  "Executed GB202 kernel comparison normalized by measured average SM cycles; empirical strict instruction-mix reference, not a universal ceiling or whole-solver roofline",
+    "inverse_dynamic_DADD_DMUL":  12208224,
+    "calibration_dynamic_DADD_DMUL":  541065216,
+    "inverse_ops_per_average_SM_cycle":  204.16909868301923,
+    "calibration_ops_per_average_SM_cycle":  245.66125818379766,
+    "inverse_fraction_of_reference_rate":  0.83110010993375671,
+    "arithmetic_only_reference_speed_ratio":  1.2032244828841443,
+    "arithmetic_only_duration_reduction_fraction":  0.16889989006624329,
+    "both_DFMA_counts_zero":  true,
+    "clocks_unlocked":  true,
+    "frequency_normalization_note":  "Cycle normalization reduces clock mismatch but does not remove memory latency, scheduling, or instruction-mix differences",
+    "reference_is_not_a_guaranteed_attainable_VMEC_bound":  true
+}

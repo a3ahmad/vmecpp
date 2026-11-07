@@ -1,0 +1,48 @@
+diff --git a/src/vmecpp/cpp/vmecpp/vmec/vmec/vmec.cc b/src/vmecpp/cpp/vmecpp/vmec/vmec/vmec.cc
+index 620cdb6..339db56 100644
+--- a/src/vmecpp/cpp/vmecpp/vmec/vmec/vmec.cc
++++ b/src/vmecpp/cpp/vmecpp/vmec/vmec/vmec.cc
+@@ -5,7 +5,9 @@
+ #include "vmecpp/vmec/vmec/vmec.h"
+
+ #include <algorithm>
++#include <chrono>
+ #include <cstdio>
++#include <cstdlib>
+ #include <iostream>
+ #include <memory>
+ #include <string>
+@@ -305,6 +307,7 @@ absl::StatusOr<bool> Vmec::run(const VmecCheckpoint& checkpoint,
+         fc_.niterv = indata_.niter_array[igrid];
+       }
+
++      const auto stage_start = std::chrono::steady_clock::now();
+       // initialize ns-dependent arrays
+       // and (if previous solution is available) interpolate to current ns
+       // value
+@@ -313,9 +316,25 @@ absl::StatusOr<bool> Vmec::run(const VmecCheckpoint& checkpoint,
+         return true;
+       }
+
++      const auto solve_start = std::chrono::steady_clock::now();
+       // *HERE* is the *ACTUAL* call to the equilibrium solver !
+       const absl::StatusOr<bool> reached_checkpoint =
+           SolveEquilibrium(checkpoint, iterations_before_checkpointing);
++
++      if (std::getenv("VMECPP_PROFILE_STAGES") != nullptr) {
++        const auto stage_end = std::chrono::steady_clock::now();
++        const double initialize_seconds =
++            std::chrono::duration<double>(solve_start - stage_start).count();
++        const double solve_seconds =
++            std::chrono::duration<double>(stage_end - solve_start).count();
++        std::fprintf(stderr,
++                     "VMECPP_STAGE ns=%d initialize=%.9g solve=%.9g "
++                     "iter2=%d retries=%d fsqr=%.17g fsqz=%.17g fsql=%.17g "
++                     "status=%s\n",
++                     fc_.nsval, initialize_seconds, solve_seconds, iter2_,
++                     num_eqsolve_retries_, fc_.fsqr, fc_.fsqz, fc_.fsql,
++                     VmecStatusAsString(status_).c_str());
++      }
+       if (!reached_checkpoint.ok() || *reached_checkpoint == true) {
+         return reached_checkpoint;
+       }

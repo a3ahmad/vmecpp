@@ -1,0 +1,87 @@
+{
+  "scope": "Executed CPU compile/link only; no DSO load or GPU qualification",
+  "source_manifest_sha256": "eb257cac254eb4baa43d5ff91d881b8f506c309d8c4d1d6a9adf9adf8e8a70e0",
+  "executed_recipe_sha256": "33591f726b73aab17c43b33170c8180bacdca53cd45eecd84822cadb983b4b43",
+  "toolchain": "CUDA12.9 nvcc, g++, Linux; SM120 only, original strict FP flags",
+  "numerical_source_changes": 0,
+  "GPU_executions": 0,
+  "numerical_TU_compile_count": 17,
+  "compile_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compile_job_wall_seconds": 65.16919112205505,
+  "first_attempt_backend_link_exit_code": 1,
+  "first_failure": "g++ as-needed omitted original iteration dependency; initial evidence retained",
+  "correction": "Metadata only: retain explicit DSO dependencies with --no-as-needed; backend directly names same iteration DSO",
+  "corrected_link_exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "corrected_link_job_wall_seconds": 1.7089626789093018,
+  "all_owned_children_reaped": true,
+  "fresh_binaries_not_hardware_qualified": true,
+  "CPU_compute_time_not_recorded": true,
+  "outputs": {
+    "iteration.so": {
+      "sha256": "6451bd281c680d7e7984188be65c3e989c59cb36ae50d29a7937894dbef8a346",
+      "needed": [
+        "libcudart.so.12",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    "rhs.so": {
+      "sha256": "0b2c08aae65f74b5c35ed02a1b511d2b0f830fa5d19b917adbe4e66c598329d7",
+      "needed": [
+        "${OUTPUT}/iteration.so",
+        "libcudart.so.12",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    "resident.so": {
+      "sha256": "2ffc7b4d9590520eb309a664fcd53cc4186f51e0bd797091d37126021dc38ee1",
+      "needed": [
+        "libcudart.so.12",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    "solver-backend.so": {
+      "sha256": "76d2ca1fe50fc3eb661916c06864700546e232de76b8ff2d8de3b2d24fa9a881",
+      "needed": [
+        "${OUTPUT}/resident.so",
+        "${OUTPUT}/rhs.so",
+        "${OUTPUT}/iteration.so",
+        "libcudart.so.12",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    }
+  }
+}

@@ -1,0 +1,275 @@
+--- a/gpu_solver.cu
++++ b/gpu_solver.cu
+@@ -34,0 +35,8 @@
++#if defined(VMECPP_DEVICE_TAIL_DISPATCH)
++#include <immintrin.h>
++
++#include <cfenv>
++#include <memory>
++
++#include "gpu_device_graph_dispatch.h"
++#endif
+@@ -776,0 +785,3 @@
++#if defined(VMECPP_DEVICE_TAIL_DISPATCH)
++    if (TryDeviceDispatch(control, m_output)) return;
++#endif
+@@ -849,0 +861,84 @@
++#if defined(VMECPP_DEVICE_TAIL_DISPATCH)
++  std::array<std::uint64_t, 3> DeviceDispatchStats() const {
++    return device_dispatch_stats_;
++  }
++  bool TryDeviceDispatch(const GpuSolverControl& control,
++                         GpuSolverScalars& m_output) {
++    const char* graph_flag = Flag("VMECPP_GPU_SOLVER_GRAPH");
++    if (control.refresh_preconditioner_ || !pinned_scalars_ ||
++        graph_flag == nullptr || graph_flag[0] != '1' ||
++        std::fegetround() != FE_TONEAREST || (_mm_getcsr() & 0xe040U) != 0) {
++      ++device_dispatch_stats_[2];
++      return false;
++    }
++    const char* residual_rounds = Flag("VMECPP_GPU_RESIDUAL_ROUNDS");
++    const char* residual_graph = Flag("VMECPP_GPU_RESIDUAL_GRAPH");
++    const char* diagnostic_rounds = Flag("VMECPP_GPU_DIAGNOSTICS_ROUNDS");
++    const char* diagnostic_graph = Flag("VMECPP_GPU_DIAGNOSTICS_GRAPH");
++    const std::array<int, 8> key{
++        1,
++        control.refresh_preconditioner_,
++        control.include_edge_rz_,
++        control.zero_z_m1_,
++        residual_rounds == nullptr ? 0 : std::atoi(residual_rounds),
++        residual_graph != nullptr && residual_graph[0] == '1',
++        diagnostic_rounds == nullptr ? 0 : std::atoi(diagnostic_rounds),
++        diagnostic_graph != nullptr && diagnostic_graph[0] == '1'};
++    cudaGraph_t good = nullptr;
++    for (const auto& entry : graphs_)
++      if (entry.key_ == key && entry.executable_ != nullptr)
++        good = entry.graph_;
++    if (good == nullptr) {
++      ++device_dispatch_stats_[2];
++      return false;
++    }
++    auto& geometry = constraint_.force_.geometry_;
++    if (!device_dispatch_ || !device_dispatch_->Contains(key)) {
++#if defined(VMECPP_COORDINATE_CAPTURES)
++      std::unique_lock<std::shared_mutex> capture_guard(CaptureGate());
++#endif
++      if (!device_dispatch_)
++        device_dispatch_ =
++            std::make_unique<vmecpp_experiment::GpuDeviceGraphDispatch>();
++      device_dispatch_->Prepare(
++          key, good, stream_, geometry.jacobian_extrema_,
++          [this] { EnqueuePrelude(); },
++          [this, &geometry] {
++            for (int i = 0; i < 5; ++i)
++              Check(cudaMemcpyAsync(
++                  geometry.profiles_[i + 6], profile_backup_[i],
++                  (i == 2 || i == 3 ? dimensions_[0] : dimensions_[0] - 1) *
++                      sizeof(double),
++                  cudaMemcpyDeviceToDevice, stream_));
++          });
++    }
++    device_dispatch_->Launch(key, stream_);
++#if defined(VMECPP_COORDINATE_CAPTURES)
++    ++thread_activity[2];
++#endif
++    Download(host_jacobian_, geometry.jacobian_extrema_, 2);
++    Download(host_scalar_packet_, scalar_packet_, 14);
++    Synchronize();
++    std::memcpy(m_output.jacobian_extrema_.data(), host_jacobian_,
++                2 * sizeof(double));
++    m_output.bad_jacobian_ =
++        m_output.jacobian_extrema_[0] * m_output.jacobian_extrema_[1] < 0.0;
++    if (m_output.bad_jacobian_ !=
++        device_dispatch_->BadJacobianAfterSynchronization())
++      throw std::runtime_error("Device/host Jacobian dispatch disagreed");
++    m_output.invalid_norm_ = 0;
++    ++device_dispatch_stats_[m_output.bad_jacobian_ ? 1 : 0];
++    if (m_output.bad_jacobian_) return true;
++    std::memcpy(m_output.invariant_residuals_.data(), host_scalar_packet_,
++                3 * sizeof(double));
++    std::memcpy(m_output.preconditioned_residuals_.data(),
++                host_scalar_packet_ + 3, 3 * sizeof(double));
++    std::memcpy(m_output.diagnostics_.data(), host_scalar_packet_ + 6,
++                7 * sizeof(double));
++    if (control.refresh_preconditioner_)
++      std::memcpy(&m_output.invalid_norm_, host_scalar_packet_ + 13,
++                  sizeof(int));
++    return true;
++  }
++#endif
++
+@@ -1079,0 +1175,4 @@
++#if defined(VMECPP_DEVICE_TAIL_DISPATCH)
++  std::unique_ptr<vmecpp_experiment::GpuDeviceGraphDispatch> device_dispatch_;
++  std::array<std::uint64_t, 3> device_dispatch_stats_{};
++#endif
+@@ -1183,0 +1283,7 @@
++
++#if defined(VMECPP_DEVICE_TAIL_DISPATCH)
++extern "C" void ReadGpuSolverDeviceDispatchStats(
++    void* context, std::array<std::uint64_t, 3>& m_stats) {
++  m_stats = static_cast<Solver*>(context)->DeviceDispatchStats();
++}
++#endif
+--- a/build_solver.py
++++ b/build_solver.py
+@@ -26,0 +27 @@
++    parser.add_argument("--device-tail-dispatch", action="store_true")
+@@ -48,0 +50,2 @@
++    if args.device_tail_dispatch and (not args.coordinate_captures or args.reuse_device_buffers or args.live_damping_controller):
++        parser.error("Device dispatch requires coordinated captures, no pool/live controller")
+@@ -82,0 +86,2 @@
++    if args.device_tail_dispatch:
++        shutil.copy2(Path(__file__).with_name("gpu_device_graph_dispatch.h"), snapshot / "gpu_device_graph_dispatch.h")
+@@ -141,0 +147 @@
++            *(["-DVMECPP_DEVICE_TAIL_DISPATCH", "-rdc=true"] if args.device_tail_dispatch else []),
+--- /dev/null
++++ b/gpu_device_graph_dispatch.h
+@@ -0,0 +1,147 @@
++// SPDX-License-Identifier: MIT
++// Experimental ordinary-graph dispatch; not enabled in qualified builds.
++#ifndef VMECPP_EXPERIMENT_GPU_DEVICE_GRAPH_DISPATCH_H_
++#define VMECPP_EXPERIMENT_GPU_DEVICE_GRAPH_DISPATCH_H_
++
++#include <cuda_runtime.h>
++
++#include <array>
++#include <stdexcept>
++#include <utility>
++#include <vector>
++
++namespace vmecpp_experiment {
++namespace device_dispatch_detail {
++inline void Check(cudaError_t status) {
++  if (status != cudaSuccess)
++    throw std::runtime_error(cudaGetErrorString(status));
++}
++__global__ void Dispatch(cudaGraphExec_t good, cudaGraphExec_t bad,
++                         const double* jacobian, int* m_status) {
++  if (threadIdx.x == 0) {
++    const bool invalid = __dmul_rn(jacobian[0], jacobian[1]) < 0.0;
++    m_status[1] = invalid;
++    m_status[0] =
++        cudaGraphLaunch(invalid ? bad : good, cudaStreamGraphTailLaunch);
++  }
++  // Kept explicitly: isolated factorial controls distinguish this end barrier.
++  __syncthreads();
++}
++}  // namespace device_dispatch_detail
++
++class GpuDeviceGraphDispatch {
++ public:
++  GpuDeviceGraphDispatch() {
++    using device_dispatch_detail::Check;
++    Check(cudaMalloc(&device_status_, 2 * sizeof(int)));
++    try {
++      Check(cudaMallocHost(&host_status_, 2 * sizeof(int)));
++    } catch (...) {
++      cudaFree(device_status_);
++      throw;
++    }
++  }
++  ~GpuDeviceGraphDispatch() {
++    // The owning solver synchronizes its stream before destroying these graphs.
++    for (const auto& entry : entries_) {
++      cudaGraphExecDestroy(entry.executable_);
++      cudaGraphDestroy(entry.graph_);
++      cudaGraphExecDestroy(entry.good_executable_);
++    }
++    if (bad_executable_ != nullptr) cudaGraphExecDestroy(bad_executable_);
++    if (bad_graph_ != nullptr) cudaGraphDestroy(bad_graph_);
++    cudaFree(device_status_);
++    cudaFreeHost(host_status_);
++  }
++  GpuDeviceGraphDispatch(const GpuDeviceGraphDispatch&) = delete;
++  GpuDeviceGraphDispatch& operator=(const GpuDeviceGraphDispatch&) = delete;
++
++  bool Contains(const std::array<int, 8>& key) const {
++    for (const auto& entry : entries_)
++      if (entry.key_ == key) return true;
++    return false;
++  }
++
++  template <typename Prelude, typename Restore>
++  void Prepare(const std::array<int, 8>& key, cudaGraph_t good_graph,
++               cudaStream_t stream, const double* jacobian, Prelude prelude,
++               Restore restore) {
++    using device_dispatch_detail::Check;
++    if (Contains(key)) return;
++    cudaGraph_t graph = nullptr;
++    cudaGraphExec_t executable = nullptr;
++    cudaGraphExec_t good_executable = nullptr;
++    bool capturing = false;
++    try {
++      // Preserve the warmed host executable. This distinct executable is only
++      // launched from the device and must be explicitly uploaded first.
++      Check(cudaGraphInstantiate(&good_executable, good_graph,
++                                 cudaGraphInstantiateFlagDeviceLaunch));
++      Check(cudaGraphUpload(good_executable, stream));
++      Check(cudaStreamSynchronize(stream));
++      if (bad_executable_ == nullptr) {
++        Check(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
++        capturing = true;
++        restore();
++        Check(cudaStreamEndCapture(stream, &bad_graph_));
++        capturing = false;
++        Check(cudaGraphInstantiate(&bad_executable_, bad_graph_,
++                                   cudaGraphInstantiateFlagDeviceLaunch));
++        Check(cudaGraphUpload(bad_executable_, stream));
++        Check(cudaStreamSynchronize(stream));
++      }
++      Check(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
++      capturing = true;
++      prelude();
++      device_dispatch_detail::Dispatch<<<1, 1, 0, stream>>>(
++          good_executable, bad_executable_, jacobian, device_status_);
++      Check(cudaStreamEndCapture(stream, &graph));
++      capturing = false;
++      Check(cudaGraphInstantiate(&executable, graph, 0));
++      entries_.push_back({key, graph, executable, good_executable});
++    } catch (...) {
++      if (capturing) {
++        cudaGraph_t abandoned = nullptr;
++        cudaStreamEndCapture(stream, &abandoned);
++        if (abandoned != nullptr) cudaGraphDestroy(abandoned);
++      }
++      if (executable != nullptr) cudaGraphExecDestroy(executable);
++      if (graph != nullptr) cudaGraphDestroy(graph);
++      if (good_executable != nullptr) cudaGraphExecDestroy(good_executable);
++      throw;
++    }
++  }
++
++  void Launch(const std::array<int, 8>& key, cudaStream_t stream) {
++    using device_dispatch_detail::Check;
++    for (const auto& entry : entries_) {
++      if (entry.key_ != key) continue;
++      Check(cudaGraphLaunch(entry.executable_, stream));
++      // This copy is dependent on completion of the entire device tail.
++      Check(cudaMemcpyAsync(host_status_, device_status_, 2 * sizeof(int),
++                            cudaMemcpyDeviceToHost, stream));
++      return;
++    }
++    throw std::runtime_error("Device dispatch graph was not prepared");
++  }
++
++  bool BadJacobianAfterSynchronization() const {
++    device_dispatch_detail::Check(static_cast<cudaError_t>(host_status_[0]));
++    return host_status_[1] != 0;
++  }
++
++ private:
++  struct Entry {
++    std::array<int, 8> key_;
++    cudaGraph_t graph_;
++    cudaGraphExec_t executable_;
++    cudaGraphExec_t good_executable_;
++  };
++  std::vector<Entry> entries_;
++  cudaGraph_t bad_graph_ = nullptr;
++  cudaGraphExec_t bad_executable_ = nullptr;
++  int* device_status_ = nullptr;
++  int* host_status_ = nullptr;
++};
++}  // namespace vmecpp_experiment
++#endif  // VMECPP_EXPERIMENT_GPU_DEVICE_GRAPH_DISPATCH_H_

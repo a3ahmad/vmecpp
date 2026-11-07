@@ -1,0 +1,5 @@
+group,arm,repetition,calls,QPC_suite_seconds,QPC_calls_per_second,Linux_RAW_suite_diagnostic_seconds
+mixed6-0-serial,serial,0,6,76.0001732,0.07894718850456514,76.00083503
+mixed6-1-parallel,parallel,0,6,46.9197576,0.12787789849962908,46.920830368
+mixed6-2-parallel,parallel,1,6,46.9669819,0.12774931999622482,46.967488111
+mixed6-3-serial,serial,1,6,77.2482494,0.0776716630681342,77.249061833

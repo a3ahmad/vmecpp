@@ -1,0 +1,80 @@
+diff --git a/src/vmecpp/cpp/vmecpp/vmec/ideal_mhd_model/ideal_mhd_model.cc b/src/vmecpp/cpp/vmecpp/vmec/ideal_mhd_model/ideal_mhd_model.cc
+index 3078b9b..1fcfe00 100644
+--- a/src/vmecpp/cpp/vmecpp/vmec/ideal_mhd_model/ideal_mhd_model.cc
++++ b/src/vmecpp/cpp/vmecpp/vmec/ideal_mhd_model/ideal_mhd_model.cc
+@@ -263,36 +263,36 @@ void vmecpp::FourierToReal3DSymmFastPoloidal(
+   const int nsMinF1 = r.nsMinF1;
+   const int nsMinF = r.nsMinF;
+   for (int jF = nsMinF1; jF < r.nsMaxF1; ++jF) {
+-    for (int m = 0; m < s.mpol; ++m) {
+-      const bool m_even = m % 2 == 0;
+-      const int idx_ml_base = m * s.nThetaReduced;
+-
+-      // with sqrtS for odd-m
+-      const double con_factor =
+-          m_even ? xmpq[m] : xmpq[m] * rp.sqrtSF[jF - nsMinF1];
+-
+-      auto& r1 = m_even ? m_geometry.r1_e : m_geometry.r1_o;
+-      auto& ru = m_even ? m_geometry.ru_e : m_geometry.ru_o;
+-      auto& rv = m_even ? m_geometry.rv_e : m_geometry.rv_o;
+-      auto& z1 = m_even ? m_geometry.z1_e : m_geometry.z1_o;
+-      auto& zu = m_even ? m_geometry.zu_e : m_geometry.zu_o;
+-      auto& zv = m_even ? m_geometry.zv_e : m_geometry.zv_o;
+-      auto& lu = m_even ? m_geometry.lu_e : m_geometry.lu_o;
+-      auto& lv = m_even ? m_geometry.lv_e : m_geometry.lv_o;
+-
+-      // axis only gets contributions up to m=1
+-      // --> all larger m contributions enter only from j=1 onwards
+-      // TODO(jons): why does the axis need m=1?
+-      int jMin = 1;
+-      if (m == 0 || m == 1) {
+-        jMin = 0;
+-      }
++    for (int k = 0; k < s.nZeta; ++k) {
++      for (int m = 0; m < s.mpol; ++m) {
++        const bool m_even = m % 2 == 0;
++        const int idx_ml_base = m * s.nThetaReduced;
+
+-      if (jF < jMin) {
+-        continue;
+-      }
++        // with sqrtS for odd-m
++        const double con_factor =
++            m_even ? xmpq[m] : xmpq[m] * rp.sqrtSF[jF - nsMinF1];
++
++        auto& r1 = m_even ? m_geometry.r1_e : m_geometry.r1_o;
++        auto& ru = m_even ? m_geometry.ru_e : m_geometry.ru_o;
++        auto& rv = m_even ? m_geometry.rv_e : m_geometry.rv_o;
++        auto& z1 = m_even ? m_geometry.z1_e : m_geometry.z1_o;
++        auto& zu = m_even ? m_geometry.zu_e : m_geometry.zu_o;
++        auto& zv = m_even ? m_geometry.zv_e : m_geometry.zv_o;
++        auto& lu = m_even ? m_geometry.lu_e : m_geometry.lu_o;
++        auto& lv = m_even ? m_geometry.lv_e : m_geometry.lv_o;
++
++        // axis only gets contributions up to m=1
++        // --> all larger m contributions enter only from j=1 onwards
++        // TODO(jons): why does the axis need m=1?
++        int jMin = 1;
++        if (m == 0 || m == 1) {
++          jMin = 0;
++        }
++
++        if (jF < jMin) {
++          continue;
++        }
+
+-      for (int k = 0; k < s.nZeta; ++k) {
+         double rmkcc = 0.0;
+         double rmkcc_n = 0.0;
+         double rmkss = 0.0;
+@@ -387,8 +387,8 @@ void vmecpp::FourierToReal3DSymmFastPoloidal(
+                 (zmksc * sinmu + zmkcs * cosmu) * con_factor;
+           }
+         }  // l
+-      }  // k
+-    }  // m
++      }  // m
++    }  // k
+   }  // j
+ }
+ 
