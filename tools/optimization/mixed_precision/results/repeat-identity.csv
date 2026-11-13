@@ -1,0 +1,5 @@
+policy,candidate_successes,metric_repeat_exact,saved_array_repeat_available,saved_array_fields_compared,saved_arrays_repeat_bit_exact
+fp64-control,2,True,True,146,True
+fp32,0,,False,0,
+warm1000,2,True,True,146,True
+warm25,2,True,True,146,True

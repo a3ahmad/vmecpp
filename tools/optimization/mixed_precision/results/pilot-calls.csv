@@ -1,0 +1,17 @@
+policy,boundary,track,role,call,status,owned_exit,QPC_cold_process_seconds,input_decks_byte_exact,owned_reaped,cleanup_actions
+fp64-control,public-P3-boundary,P3,baseline,0,SUCCESS,0,31.8281357,True,True,0
+fp64-control,public-P3-boundary,P3,candidate,1,SUCCESS,0,37.0421417,True,True,0
+fp64-control,public-P3-boundary,P3,candidate,2,SUCCESS,0,32.6863072,True,True,0
+fp64-control,public-P3-boundary,P3,baseline,3,SUCCESS,0,33.3480853,True,True,0
+fp32,public-P3-boundary,P3,baseline,0,SUCCESS,0,29.3398874,True,True,0
+fp32,public-P3-boundary,P3,candidate,1,SOLVER_NONCONVERGENCE,1,39.9304081,True,True,0
+fp32,public-P3-boundary,P3,candidate,2,SOLVER_NONCONVERGENCE,1,41.8851378,True,True,0
+fp32,public-P3-boundary,P3,baseline,3,SUCCESS,0,45.472769,True,True,0
+warm1000,public-P3-boundary,P3,baseline,0,SUCCESS,0,34.2488088,True,True,0
+warm1000,public-P3-boundary,P3,candidate,1,SUCCESS,0,58.881295,True,True,0
+warm1000,public-P3-boundary,P3,candidate,2,SUCCESS,0,53.9132184,True,True,0
+warm1000,public-P3-boundary,P3,baseline,3,SUCCESS,0,37.2087397,True,True,0
+warm25,public-P3-boundary,P3,baseline,0,SUCCESS,0,22.3044628,True,True,0
+warm25,public-P3-boundary,P3,candidate,1,SUCCESS,0,23.7627032,True,True,0
+warm25,public-P3-boundary,P3,candidate,2,SUCCESS,0,24.2637021,True,True,0
+warm25,public-P3-boundary,P3,baseline,3,SUCCESS,0,26.1749853,True,True,0

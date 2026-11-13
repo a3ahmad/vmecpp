@@ -1,0 +1,51 @@
+{
+  "scope": "One public boundary/P3 full-CGA research; not six-case qualification",
+  "policies": {
+    "fp64-control": {
+      "status_sha256": "3382b19f9bea263d211771e9f4699051b727d021ec4c30cb39aa68a311d1f013",
+      "host_QPC_sha256": "0c14b19f1d2286d7c2fa3108f70b0b72b5f7bd8c8a0a3290320b66f118b4923b",
+      "candidate_identity": {
+        "backend": "40e749227030da5be75926e34552a4bbc2bffac99380a83e85394119eb0c1cbc",
+        "resident": "49b5d265e1d2ac7de6967746053130636d3a286afcfa0830fe027cbfc407355f",
+        "shim_source": "1e42d2e40dd95f5e34f647e64841f2c108bca43fe951d8ceee971649ba5c0c60"
+      },
+      "process_QPC_seconds": 137.8437309
+    },
+    "fp32": {
+      "status_sha256": "9cb3aae7a0bcaf895671ad77982d15d3f250d354eaa316836386df996a781e9d",
+      "host_QPC_sha256": "e47a5790bedaed18c7eec8ebc45de4f68804f7bdb4324d7b9570ac9205f2dcb9",
+      "candidate_identity": {
+        "backend": "40e749227030da5be75926e34552a4bbc2bffac99380a83e85394119eb0c1cbc",
+        "resident": "49b5d265e1d2ac7de6967746053130636d3a286afcfa0830fe027cbfc407355f",
+        "shim_source": "1e42d2e40dd95f5e34f647e64841f2c108bca43fe951d8ceee971649ba5c0c60"
+      },
+      "process_QPC_seconds": 159.3515621
+    },
+    "warm1000": {
+      "status_sha256": "0b88d24b1596cdfa580cb2023e773332265c245a3836268108b69bed150c2ba5",
+      "host_QPC_sha256": "83afb1f5553cd1e716a388b91995ef0c5fa92c43f773f592abcc1510927fa77e",
+      "candidate_identity": {
+        "backend": "40e749227030da5be75926e34552a4bbc2bffac99380a83e85394119eb0c1cbc",
+        "resident": "49b5d265e1d2ac7de6967746053130636d3a286afcfa0830fe027cbfc407355f",
+        "shim_source": "1e42d2e40dd95f5e34f647e64841f2c108bca43fe951d8ceee971649ba5c0c60"
+      },
+      "process_QPC_seconds": 188.7642393
+    },
+    "warm25": {
+      "status_sha256": "512e4d089c8a668733e6c6e19dd52862f0f3181abd5804e7270dadabc7baa557",
+      "host_QPC_sha256": "db8a81f578af4f2171fc781bb71dab1325233b5b69a185055aac215a7ac4e444",
+      "candidate_identity": {
+        "backend": "40e749227030da5be75926e34552a4bbc2bffac99380a83e85394119eb0c1cbc",
+        "resident": "49b5d265e1d2ac7de6967746053130636d3a286afcfa0830fe027cbfc407355f",
+        "shim_source": "1e42d2e40dd95f5e34f647e64841f2c108bca43fe951d8ceee971649ba5c0c60"
+      },
+      "process_QPC_seconds": 99.0978377
+    }
+  },
+  "calls": 16,
+  "all_input_decks_byte_exact": true,
+  "all_owned_children_reaped": true,
+  "all_cleanup_actions_zero": true,
+  "clock_scope": "Windows QPC marker receipts bracket fresh owned process: imports, VMEC, fullCGA, saving and retirement plus delivery jitter. Not VMEC-only, no Linux-clock conversion.",
+  "failed32_note": "No final metrics/arrays; last reference checkpoints are not terminal force-floor evidence"
+}

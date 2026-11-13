@@ -1,0 +1,19 @@
+{
+    "source":  "retained gb202 forward clear-elision cohort",
+    "source_manifest_sha256":  "eb257cac254eb4baa43d5ff91d881b8f506c309d8c4d1d6a9adf9adf8e8a70e0",
+    "original_inputs":  {
+                            "gpu_forward.h":  "1839119b9d67876a367a48dfc6291e5e95d4fc49f588769fe10e0e87afacae30",
+                            "gpu_pipeline.h":  "7cfc5f2a0b6f6516986963c56c60598fa5c02f8bf93b3dcba839859357a1456b",
+                            "gpu_forward_groups_kernels.h":  "6bb3a911fcbf6d7c205640d4ece40c5b982c32711093a6c979d34de233f5f662",
+                            "radial_executor.h":  "16442dc8ba614d481468a3f3c824553d22adf95cb559f455e454b5f21ee49ac8",
+                            "gpu_forward.cu":  "25ff0a216e24defb604c1db8ffc1251f43605b786080af2ab08738f37333192e"
+                        },
+    "FP64_helper_body":  "literal original body; only function qualifier/name changed",
+    "FP32_math":  "every input floating load narrowed before scalar multiply/add; float local accumulators",
+    "ABI":  "unchanged double inputs/partials/outputs, original int dimensions and masks",
+    "capture_switch":  "uniform device symbol flag read at each kernel replay",
+    "setter":  "SetGpuForwardTransformPrecision(32|64, void* stream); NULL synchronous, identical mode no-op",
+    "GPU_executions":  0,
+    "compiled":  true,
+    "build_receipt":  "build-receipt.json"
+}

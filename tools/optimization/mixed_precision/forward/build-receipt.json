@@ -1,0 +1,41 @@
+{
+    "scope":  "CPU strict compile only; no GPU qualification",
+    "compiler":  "/usr/local/cuda-12.9/bin/nvcc",
+    "target":  "SM120",
+    "compile_exit_code":  0,
+    "GPU_executions":  0,
+    "object":  "build/optimization/mixed-precision-forward1/build1/forward-counted.o",
+    "object_sha256":  "3e7bc086e94eb7040378664c58f16f2da90dc9ca0e792fb3ef369263e7fcc1c6",
+    "source_sha256":  {
+                          "gpu_forward.cu":  "a8a96547a1cf69586e61f80d2a133f6e4fcc606e83ba6b561ca6bc6d20f73284",
+                          "gpu_forward.h":  "1839119b9d67876a367a48dfc6291e5e95d4fc49f588769fe10e0e87afacae30",
+                          "gpu_forward_groups_kernels.h":  "6bb3a911fcbf6d7c205640d4ece40c5b982c32711093a6c979d34de233f5f662",
+                          "gpu_forward_precision_kernels.cuh":  "3be32e78552a9bc7396e8b8cb18a8cfa360bab8cda2f27b7ea3a1b19a4763c75",
+                          "gpu_pipeline.h":  "7cfc5f2a0b6f6516986963c56c60598fa5c02f8bf93b3dcba839859357a1456b",
+                          "radial_executor.h":  "16442dc8ba614d481468a3f3c824553d22adf95cb559f455e454b5f21ee49ac8"
+                      },
+    "flags":  [
+                  "-DVMECPP_FORWARD_ELIDE_OUTPUT_CLEAR=1",
+                  "-DVMECPP_FORWARD_SPLIT_GROUPS",
+                  "-std=c++20",
+                  "-O3",
+                  "--fmad=false",
+                  "--ftz=false",
+                  "--prec-div=true",
+                  "--prec-sqrt=true",
+                  "-Xcompiler=-fPIC",
+                  "-gencode",
+                  "arch=compute_120,code=sm_120"
+              ],
+    "counter_order":  [
+                          "FP64",
+                          "FP32"
+                      ],
+    "increments_per_transform":  2,
+    "default_precision":  64,
+    "default_unchanged_setter":  "no-op",
+    "setter":  "SetGpuForwardTransformPrecision",
+    "getter":  "GetGpuForwardTransformPrecisionCounts",
+    "graph_runtime_precision":  "device uniform branch",
+    "default64_physical_parity_tested":  false
+}

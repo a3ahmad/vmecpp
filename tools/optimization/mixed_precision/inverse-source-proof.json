@@ -1,0 +1,43 @@
+[
+  {
+    "kernel": "ToroidalPartialsKernel",
+    "fp64_body_sha256": "3225c07116f7b3d0c5e22763a606b2d205aa13a8d5a4396fc4cc3ba82c929b6e",
+    "fp64_body_literal_copy": true,
+    "float_input_views": [
+      "rmncc",
+      "rmnss",
+      "zmnsc",
+      "zmncs",
+      "lmnsc",
+      "lmncs",
+      "cosnv",
+      "sinnv",
+      "cosnvn",
+      "sinnvn"
+    ]
+  },
+  {
+    "kernel": "FourierToRealKernelSeparable",
+    "fp64_body_sha256": "d49dcafc092175943d2526a59058f8eb194653cefc754ed2c421ee73d829e852",
+    "fp64_body_literal_copy": true,
+    "float_input_views": [
+      "partials",
+      "rmncc",
+      "rmnss",
+      "zmnsc",
+      "zmncs",
+      "lmnsc",
+      "lmncs",
+      "xmpq",
+      "sqrt_sf",
+      "cosmu",
+      "sinmu",
+      "cosmum",
+      "sinmum",
+      "cosnv",
+      "sinnv",
+      "cosnvn",
+      "sinnvn"
+    ]
+  }
+]
