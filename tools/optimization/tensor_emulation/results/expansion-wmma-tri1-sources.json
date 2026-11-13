@@ -1,0 +1,13 @@
+{
+    "scope":  "RTX5090 SM120 saved WMMA triangular/reuse-B component screen, CUDA13.5; not full inverse or solver metrics",
+    "analyzer_sha256":  "146ecc92d59a6b2345e26fc1dec240a31cb85faf45550309b2a2b600864d52a5",
+    "suite_status_sha256":  "c922239ed427d8a5f507413132acb59d6722293ea4b3acec4637a5d8157db7bc",
+    "manifest_sha256":  "fc56c08123387a2da263f4eee65c5c0f6a8c408ab474f4e149f96dbd7125107e",
+    "reports":  64,
+    "exact_selected_dots":  128,
+    "repeat_checks":  32,
+    "repeat_checks_passed":  32,
+    "original_GPU_comparator_qualified":  false,
+    "flat_ordered_GPU_comparator":  "Actual same-context flat ordered contraction; not universally supplied-C bit identity; not full18-output transform",
+    "source_data_unchanged":  true
+}

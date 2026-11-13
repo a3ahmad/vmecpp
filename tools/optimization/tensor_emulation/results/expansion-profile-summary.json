@@ -1,0 +1,44 @@
+{
+    "scope":  "Measured target-specific profiler observations; not solver timing or roofline efficiency",
+    "hardware":  "RTX 5090 GB202 SM120",
+    "toolkit":  "CUDA 13.5",
+    "build8_binary_sha256":  "42ecde2fd0cc82cf3a87534972ee2623e20e811cd1b2560c4a15f45aeed24cf7",
+    "fp16_fused6":  {
+                        "profiled_duration_us":  10.21,
+                        "registers_per_thread":  72,
+                        "achieved_occupancy_percent":  3.66,
+                        "N":  14,
+                        "optional_PC_sample_count_missing":  true,
+                        "static_shared_bytes":  0,
+                        "active_warps_per_SM":  1.76,
+                        "grid_blocks":  298,
+                        "short_scoreboard_stall_fraction_percent":  51.84,
+                        "DRAM_throughput_percent":  1.34,
+                        "case":  "ns99-inv-main-0-0",
+                        "SM_composite_compute_percent":  42.8,
+                        "block_threads":  32,
+                        "bf16_tensor_operations":  0,
+                        "M":  2376,
+                        "fp16_tensor_operations":  25632768,
+                        "K":  10
+                    },
+    "bf16_fused6_b9":  {
+                           "fp16_tensor_operations":  0,
+                           "case":  "ns99-inv-main-0-0",
+                           "bf16_tensor_operations":  25632768
+                       },
+    "nsys_final":  {
+                       "kernel_instances":  1,
+                       "kernel_name":  "FusedKernel\u003chalf,6\u003e",
+                       "B_presplit":  "outside steady scope, valid only for reusable basis",
+                       "single_profiled_kernel_duration_ns":  7388,
+                       "case":  "ns99-inv-main-0-0",
+                       "includes":  "FP64 A load, row scaling and splitting, tensor component products, FP64 reconstruction and output"
+                   },
+    "interpretation":  "SM composite compute is not tensor/FP64 roofline attainment. Stalls are diagnostics; no instruction-level root cause is claimed from missing PC sampling. Profiler durations are not used for speedup ratios.",
+    "profile_artifact_sha256":  {
+                                    "fused-final-counters8.ncu-repz":  "cf07e5e96b9d2fcb865908d32432e76c9a4157201eb6331d26705368190c2613",
+                                    "fused-bf16-counters8.ncu-repz":  "d77730e82ea3f43b6f371df84cd14f511769089e91ce88723fbc3664f34f3616",
+                                    "fused-final-timeline8.nsys-rep":  "4fb01c844c1af2df695f2e28158a25c6a1a23b167c83803a04f95493d8e53e50"
+                                }
+}

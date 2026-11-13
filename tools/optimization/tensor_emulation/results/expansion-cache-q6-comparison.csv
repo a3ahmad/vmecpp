@@ -1,0 +1,8 @@
+"suite","case","mode","digit_bits","cached_operands_active","graph_batch","time_us","maxabs_vs_supplied_C","relative_L2_vs_supplied_C","cancellation_scaled_vs_C","repeats","scope"
+"cache-b9-5","ns99-inv-toroidal-00","bf16-6","9","True","32","7.22729973495007","1.4432899320127035e-15","4.3362096331784085e-16","1.3509869302758294e-15","2","Component only; separate run comparison"
+"cache-b9-5","ns99-inv-main-0-0","bf16-6","9","True","32","9.65959988534451","1.9984014443252818e-15","3.639864948467047e-16","1.83467490139582e-15","2","Component only; separate run comparison"
+"cache-b9-5","ns99-forward-poloidal-armn-0-0","bf16-6","9","True","32","10.470699891448","1.2576745200831851e-17","4.3269702233122376e-16","1.5660466765268496e-15","2","Component only; separate run comparison"
+"cache-b9-5","ns99-forward-finish-0","bf16-6","9","False","32","25.3853008151054","7.164407955784213e-16","6.825994688325956e-15","9.797704080649942e-15","2","Component only; separate run comparison"
+"cache-warp5","ns99-inv-toroidal-00","fp16-6","10","True","32","7.3743000626564","6.661338147750939e-16","1.7104195186273988e-16","6.489672239512709e-16","2","Component only; separate run comparison"
+"cache-warp5","ns99-inv-main-0-0","fp16-6","10","True","32","9.58820022642613","4.440892098500626e-16","1.2440310153832693e-16","4.434041462831067e-16","2","Component only; separate run comparison"
+"cache-warp5","ns99-forward-poloidal-armn-0-0","fp16-6","10","True","32","10.8169000595808","6.288372600415926e-18","2.1333566120562275e-16","5.324998389812649e-16","2","Component only; separate run comparison"

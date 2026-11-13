@@ -1,0 +1,19 @@
+{
+  "scope": "RTX5090 SM120 CUDA13.5 saved component reports; graph captured, B reuse; no full transform or solver qualification",
+  "suite": "cache-b11-5",
+  "analyzer_sha256": "742345766b0f6d40b4d95bb6bdbaecb3c688fc6845abe11d25a61a28e02abae9",
+  "manifest_sha256": "fc56c08123387a2da263f4eee65c5c0f6a8c408ab474f4e149f96dbd7125107e",
+  "suite_status_sha256": "a2c0e7c51b487460a298788e5a98afa01765f06bf8d1ca46e07024a728b88987",
+  "binary_sha256": [
+    "c56fd3222c1da30d49f4ace59654c42625b6ff7489d490817720ba872d160015"
+  ],
+  "report_count": 30,
+  "aggregate_rows": 15,
+  "exact_selected_dots": 96,
+  "exact_arm_checks": 960,
+  "repeat_checks": 15,
+  "repeat_checks_passed": 15,
+  "actual_original_full_GPU_comparator_qualified": false,
+  "reference_scope": "Supplied C, actual flat ordered GPU and native GEMM are separate; exact mathematical selected dots saved privately",
+  "source_data_unchanged": true
+}

@@ -1,0 +1,41 @@
+{
+  "snapshot_scope": "Eighteen completed expansion suites including final build8 stage, proxy and synthetic stress cohorts",
+  "suites": 18,
+  "reports": 1214,
+  "repeat_checks": 607,
+  "repeat_checks_passed": 607,
+  "finite_outputs": 1214,
+  "exact_selected_case_occurrence_dots": 2464,
+  "exact_arm_checks": 38848,
+  "supplied_C_bit_exact_reports": 140,
+  "expansion_supplied_C_bit_exact_reports": 42,
+  "input_coverage": "Actual ns25/ns51/ns99 contraction exports; repeated-row proxies are not independent solves; eight public synthetic stress patterns are separate",
+  "missing_metadata": "Empty fields were not recorded by that historical source version; not silently filled",
+  "reference_scopes": [
+    "supplied C: original source grouping for actual exports; synthetic flat-K RN for stress",
+    "actual flat ordered GPU control",
+    "same-run native pedantic DGEMM",
+    "selected exact mathematical Fraction dots"
+  ],
+  "remaining_scope": "Full18-output inverse native control exists separately; no expansion full18-output replacement measured; no final solver acceptance inferred",
+  "input_class_counts": {
+    "actual_contraction_export": {
+      "reports": 894,
+      "repeat_checks": 447,
+      "supplied_C_bit_exact_reports": 58,
+      "expansion_C_bit_exact_reports": 0
+    },
+    "repeated_row_proxy": {
+      "reports": 192,
+      "repeat_checks": 96,
+      "supplied_C_bit_exact_reports": 8,
+      "expansion_C_bit_exact_reports": 0
+    },
+    "public_synthetic": {
+      "reports": 128,
+      "repeat_checks": 64,
+      "supplied_C_bit_exact_reports": 74,
+      "expansion_C_bit_exact_reports": 42
+    }
+  }
+}

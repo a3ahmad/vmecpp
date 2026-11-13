@@ -1,0 +1,19 @@
+{
+  "scope": "RTX5090 SM120 CUDA13.5 saved component exports; row-replication proxies are not independent solves",
+  "suite": "stages8",
+  "analyzer_sha256": "fdb8de36517dfbc59244fa79814c3a1eba95a01fabbe6443c66a88b622684f1f",
+  "manifest_sha256": "c10a89211b8cec9adcfcacecc9f0320f4bf9d57b58b3e1139867615a584e1f6d",
+  "suite_status_sha256": "0c960e00c04a91119ff3c69a4d2680a4ad28e1b1063355df4a67f793923cce62",
+  "binary_sha256": [
+    "42ecde2fd0cc82cf3a87534972ee2623e20e811cd1b2560c4a15f45aeed24cf7"
+  ],
+  "report_count": 96,
+  "aggregate_rows": 48,
+  "exact_selected_dots": 192,
+  "exact_arm_checks": 3072,
+  "repeat_checks": 48,
+  "repeat_checks_passed": 48,
+  "actual_original_full_GPU_comparator_qualified": false,
+  "reference_scope": "Supplied C, actual flat ordered GPU and native GEMM are separate; exact mathematical selected dots saved privately",
+  "source_data_unchanged": true
+}

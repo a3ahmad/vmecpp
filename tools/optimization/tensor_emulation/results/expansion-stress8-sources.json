@@ -1,0 +1,19 @@
+{
+  "scope": "Public synthetic stress inputs; no physics qualification",
+  "suite": "stress8",
+  "analyzer_sha256": "fdb8de36517dfbc59244fa79814c3a1eba95a01fabbe6443c66a88b622684f1f",
+  "manifest_sha256": "ee0c9df063fd85ada4b036331d70884f9daa0555b30d112f001d57865216ff8f",
+  "suite_status_sha256": "100c5811d1a362272143528481e00af4556232950429b0714079dd83d435d590",
+  "binary_sha256": [
+    "42ecde2fd0cc82cf3a87534972ee2623e20e811cd1b2560c4a15f45aeed24cf7"
+  ],
+  "report_count": 128,
+  "aggregate_rows": 64,
+  "exact_selected_dots": 256,
+  "exact_arm_checks": 4096,
+  "repeat_checks": 64,
+  "repeat_checks_passed": 64,
+  "actual_original_full_GPU_comparator_qualified": false,
+  "reference_scope": "Supplied C, actual flat ordered GPU and native GEMM are separate; exact mathematical selected dots saved privately",
+  "source_data_unchanged": true
+}

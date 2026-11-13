@@ -1,0 +1,23 @@
+{
+  "source": "saved graph suites plus original fixed direct suites; derived scalars/hash evidence only, no paths to private hosts or raw operands",
+  "hardware": "NVIDIA GeForce RTX5090 GB202 SM120",
+  "graph_mode_reports": 24,
+  "graph_aggregate_rows": 12,
+  "graph_repeat_comparisons": 12,
+  "graph_repeat_byte_exact": 12,
+  "direct_graph_byte_comparisons": 24,
+  "direct_graph_byte_exact": 24,
+  "selected_exact_dots": 64,
+  "selected_arm_comparisons": 768,
+  "source_csv_summary_sha256": {
+    "build/optimization/tensor-emulation-20261112/validation/graph-thin1/time-error.csv": "a5af160675b33b2230457e922678e140c42d8329ec42f65fb8c0e8924f2ee49e",
+    "build/optimization/tensor-emulation-20261112/validation/graph-thin1/repeat-byte-identity.csv": "724747c3792303601879e01f0716f10019037aab1ca5478fcd8b6505cd0eb664",
+    "build/optimization/tensor-emulation-20261112/validation/graph-thin1/summary.json": "365a3ee4ba2a588ef9eeaedd6da98e244cac9a50756739404fbaddb7f733438b",
+    "build/optimization/tensor-emulation-20261112/validation/fixed1/time-error.csv": "1fbbf39a9624893c7213e4671501354afd9750c831c5e1cc94bb3f9036ced68f",
+    "build/optimization/tensor-emulation-20261112/validation/graph-dense1/time-error.csv": "c787b86cec6007c5a35d11d8566641c841cc3f8b0688aa437e3cfd676b42b52f",
+    "build/optimization/tensor-emulation-20261112/validation/graph-dense1/repeat-byte-identity.csv": "3d70a853dc02b72294ca7e6dd148cf7235e19d0708d2a9d7017aea6ca1ed78a9",
+    "build/optimization/tensor-emulation-20261112/validation/graph-dense1/summary.json": "af1f5f92059bec8de7c5a45d431411cc4b565f53a87a325720c2125d158e0675",
+    "build/optimization/tensor-emulation-20261112/validation/fixed-dense1/time-error.csv": "a12f5bb4626231b05599e765de9b83548f59cade950f5d9c2c01899a2566e386"
+  },
+  "scope": "component-only; no solver qualification or CGA metrics; dense repeated rows not solver throughput"
+}

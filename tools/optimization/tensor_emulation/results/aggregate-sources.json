@@ -1,0 +1,11 @@
+{
+  "source": "validation/<suite>/time-error.csv; copied aggregate fields only, no private paths or operands",
+  "source_csv_sha256": {
+    "screen1": "26d44f34ab38038a22ff54e2669c1bc6b5433ed8bd096911128208bdc1798a87",
+    "dense1": "b5cc22719961c4613df9bde64f1a2a2063fd620c7ad303ba2bbf9431809682c9",
+    "fixed1": "1fbbf39a9624893c7213e4671501354afd9750c831c5e1cc94bb3f9036ced68f",
+    "fixed-dense1": "a12f5bb4626231b05599e765de9b83548f59cade950f5d9c2c01899a2566e386"
+  },
+  "mode_reports": 360,
+  "aggregate_rows": 180
+}
